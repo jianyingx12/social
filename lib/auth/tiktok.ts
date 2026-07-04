@@ -128,7 +128,7 @@ export async function fetchTikTokMe(accessToken: string) {
   const account = (await response.json()) as TikTokUserInfoResponse;
   const user = account.data?.user;
 
-  if (!response.ok || account.error?.code || !user?.open_id) {
+  if (!response.ok || (account.error?.code && account.error.code !== "ok") || !user?.open_id) {
     throw new TikTokOAuthError(
       account.error?.message ?? "Unable to load TikTok account",
       "user-info",
