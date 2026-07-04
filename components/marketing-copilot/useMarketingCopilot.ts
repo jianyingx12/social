@@ -13,6 +13,8 @@ import {
   type ConnectionNotice,
 } from "./connection-notices";
 import { loadConnectionStatuses, mergeConnectedAccounts } from "./connection-status";
+import { createDraftFromTikTokIdea, generateTikTokIdeas } from "./tiktok-content";
+import type { TikTokIdea } from "@/lib/types";
 
 const initialActivity = [
   "Workspace ready",
@@ -31,13 +33,11 @@ export function useMarketingCopilot() {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [drafts, setDrafts] = useState(initialDrafts);
   const [opportunities, setOpportunities] = useState(initialOpportunities);
+  const [tiktokIdeas, setTikTokIdeas] = useState<TikTokIdea[]>([]);
   const [command, setCommand] = useState("");
-  const [activity, setActivity] = useState(
-    initialConnectionNotice
-      ? [initialConnectionNotice.message, ...initialActivity]
-      : initialActivity,
-  );
-  const [connectionNotice] = useState<ConnectionNotice | null>(initialConnectionNotice);
+  const [activity, setActivity] = useState(initialActivity);
+  const [connectionNotice, setConnectionNotice] =
+    useState<ConnectionNotice | null>(initialConnectionNotice);
 
   const connectedCount = accounts.filter((account) => account.status === "Connected").length;
   const pendingCount = drafts.filter((draft) => draft.status === "Draft").length;
@@ -51,6 +51,10 @@ export function useMarketingCopilot() {
     loadConnectionStatuses()
       .then(({ accounts: nextAccounts, activity: nextActivity }) => {
         setAccounts((current) => mergeConnectedAccounts(current, nextAccounts));
+
+        if (nextAccounts.TikTok?.status === "Connected") {
+          setConnectionNotice(getTikTokConnectionNotice({ status: "connected", reason: null }));
+        }
 
         if (nextActivity.length > 0) {
           setActivity((current) => [...nextActivity, ...current]);
@@ -86,6 +90,32 @@ export function useMarketingCopilot() {
 
   function scheduleDraft(id: number) {
     updateDraftStatus(id, "Scheduled");
+  }
+
+  function generateTikTokPlan() {
+    const approvedDrafts = drafts.filter((draft) => draft.status !== "Draft");
+    const nextIdeas = generateTikTokIdeas({
+      approvedDrafts,
+      brief: command,
+    });
+
+    setTikTokIdeas(nextIdeas);
+    setActivity((current) => [
+      `Generated ${nextIdeas.length} TikTok short-form idea${nextIdeas.length === 1 ? "" : "s"}`,
+      ...current.slice(0, 4),
+    ]);
+  }
+
+  function sendTikTokIdeaToReview(id: number) {
+    const idea = tiktokIdeas.find((item) => item.id === id);
+
+    if (!idea) {
+      return;
+    }
+
+    setDrafts((current) => [createDraftFromTikTokIdea(idea), ...current]);
+    setActivity((current) => [`Moved TikTok idea to the review queue`, ...current.slice(0, 4)]);
+    setActiveTab("review");
   }
 
   function generatePlan() {
@@ -146,11 +176,14 @@ export function useMarketingCopilot() {
     opportunities,
     opportunityCount,
     pendingCount,
+    tiktokIdeas,
     approveDraft,
     connectAccount,
     draftOpportunity,
     generatePlan,
+    generateTikTokPlan,
     scheduleDraft,
+    sendTikTokIdeaToReview,
     setActiveTab,
     setCommand,
   };

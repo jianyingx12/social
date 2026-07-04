@@ -22,11 +22,14 @@ export function MarketingCopilotApp() {
     opportunities,
     opportunityCount,
     pendingCount,
+    tiktokIdeas,
     approveDraft,
     connectAccount,
     draftOpportunity,
     generatePlan,
+    generateTikTokPlan,
     scheduleDraft,
+    sendTikTokIdeaToReview,
     setActiveTab,
     setCommand,
   } = useMarketingCopilot();
@@ -82,7 +85,15 @@ export function MarketingCopilotApp() {
             {activeTab === "review" && (
               <ApprovalsPanel drafts={drafts} onApprove={approveDraft} onSchedule={scheduleDraft} />
             )}
-            {activeTab === "repurpose" && <RepurposePanel drafts={drafts} />}
+            {activeTab === "repurpose" && (
+              <RepurposePanel
+                accounts={accounts}
+                drafts={drafts}
+                ideas={tiktokIdeas}
+                onGenerateTikTokPlan={generateTikTokPlan}
+                onSendTikTokIdeaToReview={sendTikTokIdeaToReview}
+              />
+            )}
             {activeTab === "connect" && (
               <AccountPanel accounts={accounts} onConnect={connectAccount} />
             )}

@@ -28,6 +28,16 @@ export type Draft = {
   time: string;
 };
 
+export type TikTokIdea = {
+  id: number;
+  sourceTitle: string;
+  hook: string;
+  script: string;
+  caption: string;
+  callToAction: string;
+  angle: string;
+};
+
 export type Opportunity = {
   id: number;
   platform: Platform;
