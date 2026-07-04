@@ -12,7 +12,12 @@ import {
   getTikTokConnectionNotice,
   type ConnectionNotice,
 } from "./connection-notices";
-import { loadConnectionStatuses, mergeConnectedAccounts } from "./connection-status";
+import {
+  disconnectAccount,
+  loadConnectionStatuses,
+  markAccountDisconnected,
+  mergeConnectedAccounts,
+} from "./connection-status";
 import { createDraftFromTikTokIdea, generateTikTokIdeas } from "./tiktok-content";
 import type { TikTokIdea } from "@/lib/types";
 
@@ -82,6 +87,18 @@ export function useMarketingCopilot() {
       ),
     );
     setActivity((current) => [`${platform} connection is not implemented yet`, ...current]);
+  }
+
+  function disconnectConnectedAccount(platform: AccountPlatform) {
+    disconnectAccount(platform)
+      .then(() => {
+        setAccounts((current) => markAccountDisconnected(current, platform));
+        setConnectionNotice(null);
+        setActivity((current) => [`${platform} disconnected`, ...current.slice(0, 4)]);
+      })
+      .catch(() => {
+        setActivity((current) => [`Could not disconnect ${platform}`, ...current.slice(0, 4)]);
+      });
   }
 
   function approveDraft(id: number) {
@@ -179,6 +196,7 @@ export function useMarketingCopilot() {
     tiktokIdeas,
     approveDraft,
     connectAccount,
+    disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
     generateTikTokPlan,

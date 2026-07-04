@@ -43,6 +43,24 @@ export async function loadConnectionStatuses() {
   return { accounts, activity };
 }
 
+export async function disconnectAccount(platform: AccountPlatform) {
+  const routeByPlatform: Partial<Record<AccountPlatform, string>> = {
+    Reddit: "/api/connections/reddit/disconnect",
+    TikTok: "/api/connections/tiktok/disconnect",
+  };
+  const route = routeByPlatform[platform];
+
+  if (!route) {
+    throw new Error(`${platform} disconnect is not implemented`);
+  }
+
+  const response = await fetch(route, { method: "POST" });
+
+  if (!response.ok) {
+    throw new Error(`Could not disconnect ${platform}`);
+  }
+}
+
 export function mergeConnectedAccounts(
   currentAccounts: Account[],
   connectedAccounts: ConnectedAccountUpdates,
@@ -57,6 +75,20 @@ export function mergeConnectedAccounts(
     return {
       ...account,
       ...connectedAccount,
+    };
+  });
+}
+
+export function markAccountDisconnected(currentAccounts: Account[], platform: AccountPlatform) {
+  return currentAccounts.map((account) => {
+    if (account.name !== platform) {
+      return account;
+    }
+
+    return {
+      ...account,
+      handle: undefined,
+      status: "Not connected" as const,
     };
   });
 }

@@ -25,6 +25,7 @@ export function MarketingCopilotApp() {
     tiktokIdeas,
     approveDraft,
     connectAccount,
+    disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
     generateTikTokPlan,
@@ -95,7 +96,11 @@ export function MarketingCopilotApp() {
               />
             )}
             {activeTab === "connect" && (
-              <AccountPanel accounts={accounts} onConnect={connectAccount} />
+              <AccountPanel
+                accounts={accounts}
+                onConnect={connectAccount}
+                onDisconnect={disconnectConnectedAccount}
+              />
             )}
           </div>
         </section>
