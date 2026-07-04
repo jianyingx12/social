@@ -29,6 +29,7 @@ export async function handleTikTokCallback(request: NextRequest) {
     const token = await exchangeTikTokCode(code);
     const account = await fetchTikTokMe(token.access_token!);
     const expiresAt = Date.now() + (token.expires_in ?? 86400) * 1000;
+    redirectUrl.searchParams.set("tiktok", "connected");
     const response = NextResponse.redirect(redirectUrl);
 
     response.cookies.delete(tiktokStateCookie);

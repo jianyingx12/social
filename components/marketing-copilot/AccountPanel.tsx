@@ -17,46 +17,65 @@ export function AccountPanel({ accounts, onConnect }: AccountPanelProps) {
         </div>
 
         <div className="mt-5 grid gap-3">
-          {accounts.map((account) => (
-            <article
-              key={account.name}
-              className={`rounded-lg border border-l-4 border-slate-200 bg-slate-50 p-4 ${account.accent}`}
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold text-slate-950">{account.name}</h3>
-                    <span className="rounded-md bg-white px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
-                      {account.status}
-                    </span>
-                  </div>
-                  {account.handle && (
-                    <p className="mt-1 text-sm text-slate-600">{account.handle}</p>
-                  )}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {account.scopes.map((scope) => (
+          {accounts.map((account) => {
+            const isConnected = account.status === "Connected";
+
+            return (
+              <article
+                key={account.name}
+                className={`rounded-lg border border-l-4 p-4 ${
+                  isConnected
+                    ? "border-emerald-200 bg-emerald-50"
+                    : `border-slate-200 bg-slate-50 ${account.accent}`
+                }`}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-slate-950">{account.name}</h3>
                       <span
-                        key={scope}
-                        className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+                        className={`rounded-md px-2 py-1 text-xs font-semibold ring-1 ${
+                          isConnected
+                            ? "bg-emerald-600 text-white ring-emerald-600"
+                            : "bg-white text-slate-700 ring-slate-200"
+                        }`}
                       >
-                        {scope}
+                        {account.status}
                       </span>
-                    ))}
+                    </div>
+                    {isConnected && account.handle && (
+                      <p className="mt-2 text-sm font-medium text-emerald-900">
+                        Connected as {account.handle}
+                      </p>
+                    )}
+                    {!isConnected && account.handle && (
+                      <p className="mt-1 text-sm text-slate-600">{account.handle}</p>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {account.scopes.map((scope) => (
+                        <span
+                          key={scope}
+                          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+                        >
+                          {scope}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                  <button
+                    onClick={() => onConnect(account.name)}
+                    className="flex min-h-10 w-full shrink-0 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700 sm:w-40"
+                  >
+                    {account.status === "Connected"
+                      ? "Connected"
+                      : account.name === "Instagram"
+                        ? "Not wired yet"
+                        : `Connect ${account.name}`}
+                  </button>
                 </div>
-                <button
-                  onClick={() => onConnect(account.name)}
-                  className="flex min-h-10 w-full shrink-0 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700 sm:w-40"
-                >
-                  {account.status === "Connected"
-                    ? "Reconnect"
-                    : account.name === "Instagram"
-                      ? "Not wired yet"
-                      : `Connect ${account.name}`}
-                </button>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
 

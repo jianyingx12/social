@@ -6,17 +6,13 @@ import {
   initialDrafts,
   initialOpportunities,
 } from "@/lib/marketing-data";
-import type { Account, AccountPlatform, Draft, Opportunity, Tab } from "@/lib/types";
-
-type RedditStatus = {
-  connected: boolean;
-  username?: string;
-};
-
-type TikTokStatus = {
-  connected: boolean;
-  displayName?: string;
-};
+import type { AccountPlatform, Draft, Opportunity, Tab } from "@/lib/types";
+import {
+  getInitialTikTokResult,
+  getTikTokConnectionNotice,
+  type ConnectionNotice,
+} from "./connection-notices";
+import { loadConnectionStatuses, mergeConnectedAccounts } from "./connection-status";
 
 const initialActivity = [
   "Workspace ready",
@@ -25,18 +21,33 @@ const initialActivity = [
 ];
 
 export function useMarketingCopilot() {
-  const [activeTab, setActiveTab] = useState<Tab>("opportunities");
+  const [initialTikTokResult] = useState(getInitialTikTokResult);
+  const initialConnectionNotice = initialTikTokResult
+    ? getTikTokConnectionNotice(initialTikTokResult)
+    : null;
+  const [activeTab, setActiveTab] = useState<Tab>(
+    initialConnectionNotice ? "connect" : "opportunities",
+  );
   const [accounts, setAccounts] = useState(initialAccounts);
   const [drafts, setDrafts] = useState(initialDrafts);
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [command, setCommand] = useState("");
-  const [activity, setActivity] = useState(initialActivity);
+  const [activity, setActivity] = useState(
+    initialConnectionNotice
+      ? [initialConnectionNotice.message, ...initialActivity]
+      : initialActivity,
+  );
+  const [connectionNotice] = useState<ConnectionNotice | null>(initialConnectionNotice);
 
   const connectedCount = accounts.filter((account) => account.status === "Connected").length;
   const pendingCount = drafts.filter((draft) => draft.status === "Draft").length;
   const opportunityCount = opportunities.length;
 
   useEffect(() => {
+    if (initialTikTokResult) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+
     loadConnectionStatuses()
       .then(({ accounts: nextAccounts, activity: nextActivity }) => {
         setAccounts((current) => mergeConnectedAccounts(current, nextAccounts));
@@ -48,7 +59,7 @@ export function useMarketingCopilot() {
       .catch(() => {
         setActivity((current) => ["Could not load connection status", ...current]);
       });
-  }, []);
+  }, [initialTikTokResult]);
 
   function connectAccount(platform: AccountPlatform) {
     if (platform === "Reddit") {
@@ -129,6 +140,7 @@ export function useMarketingCopilot() {
     activeTab,
     activity,
     command,
+    connectionNotice,
     connectedCount,
     drafts,
     opportunities,
@@ -142,35 +154,6 @@ export function useMarketingCopilot() {
     setActiveTab,
     setCommand,
   };
-}
-
-async function loadConnectionStatuses() {
-  const [redditResponse, tiktokResponse] = await Promise.all([
-    fetch("/api/connections/reddit/status"),
-    fetch("/api/connections/tiktok/status"),
-  ]);
-  const redditStatus = (await redditResponse.json()) as RedditStatus;
-  const tiktokStatus = (await tiktokResponse.json()) as TikTokStatus;
-  const accounts: Partial<Record<AccountPlatform, Pick<Account, "handle" | "status">>> = {};
-  const activity: string[] = [];
-
-  if (redditStatus.connected && redditStatus.username) {
-    accounts.Reddit = {
-      handle: `u/${redditStatus.username}`,
-      status: "Connected",
-    };
-    activity.push(`Reddit connected as u/${redditStatus.username}`);
-  }
-
-  if (tiktokStatus.connected && tiktokStatus.displayName) {
-    accounts.TikTok = {
-      handle: tiktokStatus.displayName,
-      status: "Connected",
-    };
-    activity.push(`TikTok connected as ${tiktokStatus.displayName}`);
-  }
-
-  return { accounts, activity };
 }
 
 function createOpportunityPreview(brief: string): Opportunity[] {
@@ -214,22 +197,4 @@ function createOpportunityPreview(brief: string): Opportunity[] {
         `One workflow that works: start with a real demo, pull out the strongest before/after moment, write one hook for the specific audience, and turn that into a short clip. ${product} is being shaped around that broader growth-agent workflow, especially when a useful community answer can become more content later.`,
     },
   ];
-}
-
-function mergeConnectedAccounts(
-  currentAccounts: Account[],
-  connectedAccounts: Partial<Record<AccountPlatform, Pick<Account, "handle" | "status">>>,
-) {
-  return currentAccounts.map((account) => {
-    const connectedAccount = connectedAccounts[account.name];
-
-    if (!connectedAccount) {
-      return account;
-    }
-
-    return {
-      ...account,
-      ...connectedAccount,
-    };
-  });
 }
