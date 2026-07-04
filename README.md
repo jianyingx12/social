@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Product Marketing Copilot
 
-## Getting Started
+Early MVP for a social marketing copilot.
 
-First, run the development server:
+The idea is simple: connect your accounts, tell the app what you are building, let it draft posts and replies, then review everything before anything is posted.
+
+This is not meant to be a fully automatic posting bot. The first version is intentionally approval-first.
+
+## What It Does Right Now
+
+- Shows a basic dashboard for account connections
+- Has a command box for describing a product or campaign
+- Creates draft post ideas from that command
+- Keeps drafts in an approval queue
+- Shows a simple schedule view
+- Starts a real Reddit OAuth connection flow
+- Reads the connected Reddit username after OAuth
+
+## Why Reddit Access Is Needed
+
+The app is a normal external web app. It does not run inside Reddit or Devvit.
+
+For Reddit, the intended flow is:
+
+1. A user connects their own Reddit account.
+2. The app confirms which Reddit account is connected.
+3. The user writes a campaign brief.
+4. The app prepares draft Reddit post ideas.
+5. The user reviews and edits the draft.
+6. Posting only happens after the user approves.
+
+The app is not intended to mass-post, vote, scrape, spam, or work around subreddit rules.
+
+## Not Done Yet
+
+- Real database
+- Encrypted token storage
+- Real Reddit posting
+- Real AI API calls
+- TikTok OAuth
+- Instagram OAuth
+
+## Local Setup
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create `.env.local`:
+
+```txt
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_REDIRECT_URI=http://localhost:3000/api/auth/reddit/callback
+REDDIT_USER_AGENT=ProductMarketingCopilot/0.1 by your_reddit_username
+```
+
+Run the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```txt
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Reddit Redirect URI
 
-## Learn More
+For local development, the Reddit app redirect URI should be:
 
-To learn more about Next.js, take a look at the following resources:
+```txt
+http://localhost:3000/api/auth/reddit/callback
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This repo is still a prototype. The current Reddit connection stores only enough local state to show that the account connected. Production token storage needs to move into encrypted server-side storage.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+More product context is in [docs/overview.md](docs/overview.md).
