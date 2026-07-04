@@ -1,18 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
-  createRedditAuthorizationUrl,
-  getMissingRedditEnv,
-  redditStateCookie,
-} from "@/lib/auth/reddit";
+  createTikTokAuthorizationUrl,
+  getMissingTikTokEnv,
+  tiktokStateCookie,
+} from "@/lib/auth/tiktok";
 
 export async function GET() {
-  const missingEnv = getMissingRedditEnv();
+  const missingEnv = getMissingTikTokEnv();
 
   if (missingEnv.length > 0) {
     return NextResponse.json(
       {
-        error: "Reddit OAuth is not configured",
+        error: "TikTok OAuth is not configured",
         missingEnv,
       },
       { status: 500 },
@@ -20,9 +20,9 @@ export async function GET() {
   }
 
   const state = randomUUID();
-  const response = NextResponse.redirect(createRedditAuthorizationUrl(state));
+  const response = NextResponse.redirect(createTikTokAuthorizationUrl(state));
 
-  response.cookies.set(redditStateCookie, state, {
+  response.cookies.set(tiktokStateCookie, state, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

@@ -3,7 +3,6 @@ type ChatPanelProps = {
   command: string;
   onCommandChange: (value: string) => void;
   onGenerate: () => void;
-  selectedPlan: string[];
 };
 
 export function ChatPanel({
@@ -11,7 +10,6 @@ export function ChatPanel({
   command,
   onCommandChange,
   onGenerate,
-  selectedPlan,
 }: ChatPanelProps) {
   return (
     <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
@@ -48,12 +46,10 @@ export function ChatPanel({
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {selectedPlan.map((item) => (
-            <div key={item} className="border border-stone-300 bg-white p-4">
-              <p className="text-sm leading-6 text-stone-700">{item}</p>
-            </div>
-          ))}
+        <div className="mt-5 border border-dashed border-stone-300 bg-stone-50 p-4">
+          <p className="text-sm leading-6 text-stone-600">
+            Draft generation will connect here once an AI provider is added.
+          </p>
         </div>
       </div>
 

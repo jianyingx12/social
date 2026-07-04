@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { decodeCookieValue, encodeCookieValue } from "./cookie-codec";
 
 export type RedditConnection = {
   username: string;
@@ -31,9 +32,7 @@ export function getRedditConfig() {
     clientSecret: process.env.REDDIT_CLIENT_SECRET,
     redirectUri:
       process.env.REDDIT_REDIRECT_URI ?? "http://localhost:3000/api/auth/reddit/callback",
-    userAgent:
-      process.env.REDDIT_USER_AGENT ??
-      "ProductMarketingCopilot/0.1 by local-development",
+    userAgent: process.env.REDDIT_USER_AGENT ?? "OrganicReach/0.1 by local-development",
   };
 }
 
@@ -108,17 +107,9 @@ export async function fetchRedditMe(accessToken: string) {
 }
 
 export function encodeRedditConnection(connection: RedditConnection) {
-  return Buffer.from(JSON.stringify(connection), "utf8").toString("base64url");
+  return encodeCookieValue(connection);
 }
 
 export function decodeRedditConnection(value: string | undefined) {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as RedditConnection;
-  } catch {
-    return null;
-  }
+  return decodeCookieValue<RedditConnection>(value);
 }

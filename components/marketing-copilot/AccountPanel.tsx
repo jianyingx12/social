@@ -48,11 +48,11 @@ export function AccountPanel({ accounts, onConnect }: AccountPanelProps) {
                   onClick={() => onConnect(account.name)}
                   className="h-10 rounded-md bg-stone-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-800"
                 >
-                  {account.name === "Reddit" && account.status === "Connected"
+                  {account.status === "Connected"
                     ? "Reconnect"
-                    : account.name === "Reddit"
-                      ? "Connect Reddit"
-                      : "Not wired yet"}
+                    : account.name === "Instagram"
+                      ? "Not wired yet"
+                      : `Connect ${account.name}`}
                 </button>
               </div>
             </article>

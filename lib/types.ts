@@ -19,15 +19,3 @@ export type Draft = {
   body: string;
   time: string;
 };
-
-export type Community = {
-  name: string;
-  fit: string;
-  reason: string;
-};
-
-export type ReplyDraft = {
-  from: string;
-  text: string;
-  reply: string;
-};

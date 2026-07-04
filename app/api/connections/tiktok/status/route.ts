@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
 import {
-  decodeRedditConnection,
-  redditConnectionCookie,
-} from "@/lib/auth/reddit";
+  decodeTikTokConnection,
+  tiktokConnectionCookie,
+} from "@/lib/auth/tiktok";
 
 export async function GET(request: NextRequest) {
-  const connection = decodeRedditConnection(
-    request.cookies.get(redditConnectionCookie)?.value,
+  const connection = decodeTikTokConnection(
+    request.cookies.get(tiktokConnectionCookie)?.value,
   );
 
   if (!connection) {
@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
 
   return Response.json({
     connected: true,
-    username: connection.username,
+    displayName: connection.displayName,
+    openId: connection.openId,
     scope: connection.scope,
     expiresAt: connection.expiresAt,
   });

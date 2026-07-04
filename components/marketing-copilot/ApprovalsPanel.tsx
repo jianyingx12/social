@@ -1,5 +1,4 @@
-import { communities, replies } from "@/lib/marketing-data";
-import type { Community, Draft } from "@/lib/types";
+import type { Draft } from "@/lib/types";
 
 type ApprovalsPanelProps = {
   drafts: Draft[];
@@ -59,53 +58,18 @@ export function ApprovalsPanel({ drafts, onApprove, onSchedule }: ApprovalsPanel
         )}
       </div>
 
-      {drafts.length > 0 && (
-        <div className="grid gap-4">
-          <CommunityList title="Communities to try" items={communities} />
-          <ReplyPanel />
-        </div>
-      )}
+      {drafts.length > 0 && <DraftSupportPanel />}
     </section>
   );
 }
 
-function CommunityList({ title, items }: { title: string; items: Community[] }) {
+function DraftSupportPanel() {
   return (
-    <div className="border border-stone-300 bg-white p-4">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="mt-4 grid gap-3">
-        {items.map((item) => (
-          <div key={item.name} className="border border-stone-200 p-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-semibold">{item.name}</p>
-              <span className="text-xs font-semibold text-emerald-700">{item.fit}</span>
-            </div>
-            <p className="mt-1 text-sm leading-6 text-stone-600">{item.reason}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ReplyPanel() {
-  return (
-    <div className="border border-stone-300 bg-white p-4">
-      <h2 className="text-lg font-semibold">Reply drafts</h2>
-      <div className="mt-4 grid gap-3">
-        {replies.map((reply) => (
-          <div key={reply.text} className="border border-stone-200 p-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
-              {reply.from}
-            </p>
-            <p className="mt-2 text-sm font-medium text-stone-800">&ldquo;{reply.text}&rdquo;</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">{reply.reply}</p>
-            <button className="mt-3 h-9 rounded-md border border-stone-300 px-3 text-sm font-semibold hover:bg-stone-50">
-              Approve reply
-            </button>
-          </div>
-        ))}
-      </div>
+    <div className="border border-dashed border-stone-300 bg-white p-4">
+      <h2 className="text-lg font-semibold">Next up</h2>
+      <p className="mt-2 text-sm leading-6 text-stone-600">
+        Community suggestions and reply drafts will appear here once those services are connected.
+      </p>
     </div>
   );
 }

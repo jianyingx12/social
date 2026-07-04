@@ -1,106 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AccountPanel } from "./AccountPanel";
 import { ApprovalsPanel } from "./ApprovalsPanel";
 import { ChatPanel } from "./ChatPanel";
 import { Metric } from "./Metric";
 import { SchedulePanel } from "./SchedulePanel";
 import { Sidebar } from "./Sidebar";
-import {
-  createDraftsFromCommand,
-  initialAccounts,
-  initialDrafts,
-  selectedPlan,
-} from "@/lib/marketing-data";
-import type { Platform, Tab } from "@/lib/types";
+import { useMarketingCopilot } from "./useMarketingCopilot";
 
 export function MarketingCopilotApp() {
-  const [activeTab, setActiveTab] = useState<Tab>("chat");
-  const [accounts, setAccounts] = useState(initialAccounts);
-  const [drafts, setDrafts] = useState(initialDrafts);
-  const [command, setCommand] = useState("");
-  const [activity, setActivity] = useState([
-    "Workspace ready",
-    "Connect accounts before publishing",
-    "Type a campaign command to draft content",
-  ]);
-
-  const connectedCount = accounts.filter((account) => account.status === "Connected").length;
-  const pendingCount = drafts.filter((draft) => draft.status === "Draft").length;
-
-  useEffect(() => {
-    async function loadRedditStatus() {
-      const response = await fetch("/api/connections/reddit/status");
-      const status = (await response.json()) as {
-        connected: boolean;
-        username?: string;
-      };
-
-      if (!status.connected || !status.username) {
-        return;
-      }
-
-      setAccounts((current) =>
-        current.map((account) =>
-          account.name === "Reddit"
-            ? {
-                ...account,
-                handle: `u/${status.username}`,
-                status: "Connected",
-              }
-            : account,
-        ),
-      );
-      setActivity((current) => [`Reddit connected as u/${status.username}`, ...current]);
-    }
-
-    loadRedditStatus().catch(() => {
-      setActivity((current) => ["Could not load Reddit connection status", ...current]);
-    });
-  }, []);
-
-  function connectAccount(platform: Platform) {
-    if (platform === "Reddit") {
-      window.location.href = "/api/auth/reddit/start";
-      return;
-    }
-
-    setAccounts((current) =>
-      current.map((account) =>
-        account.name === platform ? { ...account, status: "Review scopes" } : account,
-      ),
-    );
-    setActivity((current) => [`${platform} connection is not implemented yet`, ...current]);
-  }
-
-  function approveDraft(id: number) {
-    setDrafts((current) =>
-      current.map((draft) => (draft.id === id ? { ...draft, status: "Approved" } : draft)),
-    );
-  }
-
-  function scheduleDraft(id: number) {
-    setDrafts((current) =>
-      current.map((draft) => (draft.id === id ? { ...draft, status: "Scheduled" } : draft)),
-    );
-  }
-
-  function generatePlan() {
-    const nextDrafts = createDraftsFromCommand(command);
-    if (nextDrafts.length === 0) {
-      setActivity((current) => ["Add a campaign command before generating drafts", ...current]);
-      return;
-    }
-
-    setDrafts(nextDrafts);
-    setActivity((current) => [
-      `AI command received: "${command.trim()}"`,
-      "New draft pack created for founder review",
-      ...current.slice(0, 4),
-    ]);
-    setActiveTab("approvals");
-  }
+  const {
+    accounts,
+    activeTab,
+    activity,
+    command,
+    connectedCount,
+    drafts,
+    pendingCount,
+    approveDraft,
+    connectAccount,
+    generatePlan,
+    scheduleDraft,
+    setActiveTab,
+    setCommand,
+  } = useMarketingCopilot();
 
   return (
     <main className="min-h-screen bg-[#f6f7f2] text-stone-950">
@@ -111,7 +34,7 @@ export function MarketingCopilotApp() {
               Review-first social agent
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-normal text-stone-950 sm:text-5xl">
-              Product Marketing Copilot
+              OrganicReach
             </h1>
           </div>
           <div className="grid grid-cols-3 gap-2 text-sm">
@@ -134,7 +57,6 @@ export function MarketingCopilotApp() {
                 command={command}
                 onCommandChange={setCommand}
                 onGenerate={generatePlan}
-                selectedPlan={selectedPlan}
               />
             )}
             {activeTab === "approvals" && (

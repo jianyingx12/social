@@ -1,6 +1,6 @@
-# Product Marketing Copilot Overview
+# OrganicReach Overview
 
-Product Marketing Copilot is a review-first AI marketing workspace for founders who want help turning any product or startup idea into social content without giving up control.
+OrganicReach is a review-first organic marketing workspace for founders who want help turning any product or startup idea into social content without giving up control.
 
 The product starts with connected social accounts. A user links channels like Reddit, TikTok, and Instagram through platform permission screens, then the app can prepare content for those destinations. The safest early version keeps posting permission behind a human approval step instead of letting the AI publish automatically.
 
@@ -15,6 +15,6 @@ The MVP focuses on four product areas:
 - An approval queue for drafts, replies, and campaign assets
 - A schedule view that shows what is approved and ready to publish
 
-The first real connection milestone is Reddit OAuth. The app sends users to Reddit's permission screen, validates the callback, exchanges the authorization code, and records the connected Reddit username for the workspace. In a production version, access and refresh tokens should be stored encrypted in server-side storage rather than treated as UI state.
+The first real connection milestone is OAuth identity connection. The app sends users to the platform permission screen, validates the callback, exchanges the authorization code, and records the connected account identity for the workspace. Reddit can be tested locally with a localhost callback. TikTok Login Kit requires an HTTPS redirect URI, so it needs a deployed URL or HTTPS tunnel for end-to-end testing. The TikTok callback path is `/api/auth/callback/tiktok`. In a production version, access and refresh tokens should be stored encrypted in server-side storage rather than treated as UI state.
 
 The guiding principle is trust. AI can draft, recommend, rank, and prepare, but the founder stays in control before anything goes live.

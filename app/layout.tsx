@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Product Marketing Copilot",
-  description: "A review-first AI social marketing prototype.",
+  title: "OrganicReach",
+  description: "A review-first organic social marketing workspace.",
 };
 
 export default function RootLayout({

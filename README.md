@@ -1,4 +1,4 @@
-# Product Marketing Copilot
+# OrganicReach
 
 Early MVP for a social marketing copilot.
 
@@ -15,6 +15,8 @@ This is not meant to be a fully automatic posting bot. The first version is inte
 - Shows a simple schedule view
 - Starts a real Reddit OAuth connection flow
 - Reads the connected Reddit username after OAuth
+- Starts a TikTok Login Kit OAuth flow
+- Reads the connected TikTok display name after OAuth
 
 ## Why Reddit Access Is Needed
 
@@ -37,7 +39,6 @@ The app is not intended to mass-post, vote, scrape, spam, or work around subredd
 - Encrypted token storage
 - Real Reddit posting
 - Real AI API calls
-- TikTok OAuth
 - Instagram OAuth
 
 ## Local Setup
@@ -54,7 +55,13 @@ Create `.env.local`:
 REDDIT_CLIENT_ID=
 REDDIT_CLIENT_SECRET=
 REDDIT_REDIRECT_URI=http://localhost:3000/api/auth/reddit/callback
-REDDIT_USER_AGENT=ProductMarketingCopilot/0.1 by your_reddit_username
+REDDIT_USER_AGENT=OrganicReach/0.1 by your_reddit_username
+
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
+TIKTOK_REDIRECT_URI=https://your-domain.example/api/auth/callback/tiktok
+TIKTOK_VERIFICATION_FILENAME=
+TIKTOK_VERIFICATION_CONTENT=
 ```
 
 Run the app:
@@ -77,8 +84,31 @@ For local development, the Reddit app redirect URI should be:
 http://localhost:3000/api/auth/reddit/callback
 ```
 
+## TikTok Redirect URI
+
+TikTok requires web redirect URIs to use `https`. For TikTok testing, use a deployed app URL or an HTTPS tunnel and register that exact callback in the TikTok developer portal:
+
+```txt
+https://your-domain.example/api/auth/callback/tiktok
+```
+
+## TikTok Site Verification
+
+TikTok may ask you to verify your site by serving a downloaded `.txt` file from the root of the app. Set these env vars with the filename and exact file contents:
+
+```txt
+TIKTOK_VERIFICATION_FILENAME=tiktok-example.txt
+TIKTOK_VERIFICATION_CONTENT=exact_file_contents_here
+```
+
+The file will be available at:
+
+```txt
+https://your-domain.example/tiktok-example.txt
+```
+
 ## Notes
 
-This repo is still a prototype. The current Reddit connection stores only enough local state to show that the account connected. Production token storage needs to move into encrypted server-side storage.
+This repo is still a prototype. The current Reddit and TikTok connections store only enough local state to show that the account connected. Production token storage needs to move into encrypted server-side storage.
 
 More product context is in [docs/overview.md](docs/overview.md).
