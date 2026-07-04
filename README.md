@@ -1,18 +1,18 @@
 # OrganicReach
 
-Early MVP for a social marketing copilot.
+Early MVP for an AI growth agent.
 
-The idea is simple: connect your accounts, tell the app what you are building, let it draft posts and replies, then review everything before anything is posted.
+The idea is simple: describe what you are building, let the app find conversations where people are already talking about that problem, then review AI-drafted replies before anything is posted.
 
-This is not meant to be a fully automatic posting bot. The first version is intentionally approval-first.
+This is not meant to be a fully automatic posting bot or another social scheduler. The first version is intentionally discovery-first and approval-first.
 
 ## What It Does Right Now
 
 - Shows a basic dashboard for account connections
-- Has a command box for describing a product or campaign
-- Creates draft post ideas from that command
-- Keeps drafts in an approval queue
-- Shows a simple schedule view
+- Has a product brief screen for describing a product, audience, and problem
+- Shows a first opportunities view for relevant conversations
+- Drafts replies from selected opportunities into a review queue
+- Includes a repurpose area for later TikTok, Instagram, Shorts, and LinkedIn workflows
 - Starts a real Reddit OAuth connection flow
 - Reads the connected Reddit username after OAuth
 - Starts a TikTok Login Kit OAuth flow
@@ -27,7 +27,7 @@ For Reddit, the intended flow is:
 1. A user connects their own Reddit account.
 2. The app confirms which Reddit account is connected.
 3. The user writes a campaign brief.
-4. The app prepares draft Reddit post ideas.
+4. The app finds relevant Reddit discussions and prepares draft replies.
 5. The user reviews and edits the draft.
 6. Posting only happens after the user approves.
 

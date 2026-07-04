@@ -1,20 +1,33 @@
 # OrganicReach Overview
 
-OrganicReach is a review-first organic marketing workspace for founders who want help turning any product or startup idea into social content without giving up control.
+OrganicReach is an AI growth agent for founders. The product helps a founder find places where people are already talking about problems their product solves, then drafts useful responses, posts, and follow-ups for the founder to review.
 
-The product starts with connected social accounts. A user links channels like Reddit, TikTok, and Instagram through platform permission screens, then the app can prepare content for those destinations. The safest early version keeps posting permission behind a human approval step instead of letting the AI publish automatically.
+The product is not meant to be another generic social scheduler. A scheduler starts with the question, "What should I post today?" OrganicReach starts with a better question: "Where on the internet are people already asking for something like this?"
 
-The core workflow is simple: the founder tells the AI what to market, the AI creates campaign drafts, the founder reviews the work, and approved content can be posted or scheduled. A campaign command becomes a set of recommended posts, video ideas, carousel concepts, community targets, and comment replies.
+For a product like ChalkReel, OrganicReach should be able to find relevant conversations in places like Reddit, Hacker News, Indie Hackers, Discord, Slack, YouTube comments, and other community spaces. It can notice a thread where a coach asks for basketball play drawing software, rank that thread as a good opportunity, and draft a helpful reply that the founder can approve.
 
-The app is meant to behave less like a blank social media scheduler and more like a marketing operator. It should understand the selected product, suggest where the audience might be, draft platform-native content, and keep a queue of work that the founder can approve. The same workflow can be reused for future products with a new brand brief, connected accounts, and launch goals.
+The most important early workflow is:
 
-The MVP focuses on four product areas:
+1. The founder describes the product, audience, and launch goal.
+2. OrganicReach searches conversation-based platforms for relevant discussions.
+3. The app ranks opportunities by relevance, intent, and risk.
+4. AI drafts personalized replies or posts.
+5. The founder reviews, edits, and approves.
+6. Approved content is posted, scheduled, or copied into the right channel.
 
-- Account connections for Reddit, TikTok, and Instagram
-- An AI command workspace where the user describes what to market
-- An approval queue for drafts, replies, and campaign assets
-- A schedule view that shows what is approved and ready to publish
+Reddit is the clearest first channel because it is built around public discussions, niche communities, and question-driven threads. That makes it possible for OrganicReach to act like a marketing operator instead of a posting bot. The product can help founders find useful moments to join conversations without manually searching every community themselves.
 
-The first real connection milestone is OAuth identity connection. The app sends users to the platform permission screen, validates the callback, exchanges the authorization code, and records the connected account identity for the workspace. Reddit can be tested locally with a localhost callback. TikTok Login Kit requires an HTTPS redirect URI, so it needs a deployed URL or HTTPS tunnel for end-to-end testing. The TikTok callback path is `/api/auth/callback/tiktok`. In a production version, access and refresh tokens should be stored encrypted in server-side storage rather than treated as UI state.
+TikTok, Instagram, YouTube Shorts, LinkedIn, and similar broadcast channels still have a role, but they are secondary. They are better for repurposing and learning than for discovering demand. OrganicReach can eventually turn a product demo, customer answer, or high-performing community reply into short-form video ideas, captions, clips, and follow-up posts. It can also study account performance and comments to recommend what content to make next.
 
-The guiding principle is trust. AI can draft, recommend, rank, and prepare, but the founder stays in control before anything goes live.
+The MVP should focus on four product areas:
+
+- Opportunity discovery across conversation platforms
+- AI-drafted replies and posts based on real conversations
+- A review queue where the founder approves everything before it goes live
+- Account connections that support identity, posting, and future analytics
+
+The connection system is infrastructure. Users can connect accounts through platform permission screens, and the app records enough identity information to show connection status. The safest early version keeps posting permission behind a human approval step instead of letting the AI publish automatically.
+
+The first real connection milestones are OAuth identity connections for Reddit and TikTok. Reddit supports the core opportunity-discovery direction. TikTok is useful later for Login Kit, content repurposing, analytics, and comment workflows. The TikTok callback path is `/api/auth/callback/tiktok`. In production, access and refresh tokens should be stored encrypted in server-side storage rather than treated as UI state.
+
+The guiding principle is trust. OrganicReach can find, draft, rank, recommend, and prepare, but the founder stays in control before anything goes live.

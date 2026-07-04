@@ -1,9 +1,17 @@
-export type Platform = "Reddit" | "TikTok" | "Instagram";
+export type Platform =
+  | "Reddit"
+  | "Hacker News"
+  | "Indie Hackers"
+  | "YouTube"
+  | "TikTok"
+  | "Instagram";
 
-export type Tab = "connect" | "chat" | "approvals" | "schedule";
+export type AccountPlatform = "Reddit" | "TikTok" | "Instagram";
+
+export type Tab = "brief" | "opportunities" | "review" | "connect" | "repurpose";
 
 export type Account = {
-  name: Platform;
+  name: AccountPlatform;
   handle?: string;
   status: "Connected" | "Not connected" | "Review scopes";
   scopes: string[];
@@ -13,9 +21,21 @@ export type Account = {
 export type Draft = {
   id: number;
   platform: Platform;
-  format: string;
+  format: "Reply" | "Post" | "Short-form idea";
   status: "Draft" | "Approved" | "Scheduled";
   title: string;
   body: string;
   time: string;
+};
+
+export type Opportunity = {
+  id: number;
+  platform: Platform;
+  source: string;
+  title: string;
+  intent: string;
+  score: number;
+  risk: "Low" | "Medium" | "High";
+  angle: string;
+  suggestedReply: string;
 };

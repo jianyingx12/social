@@ -5,9 +5,9 @@ type MetricProps = {
 
 export function Metric({ label, value }: MetricProps) {
   return (
-    <div className="min-w-24 border border-stone-300 bg-white px-3 py-2">
-      <p className="text-xs text-stone-500">{label}</p>
-      <p className="text-lg font-semibold text-stone-950">{value}</p>
+    <div className="min-w-24 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 shadow-sm">
+      <p className="text-xs font-medium text-slate-500">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-slate-950">{value}</p>
     </div>
   );
 }

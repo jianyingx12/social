@@ -8,30 +8,35 @@ type SidebarProps = {
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   return (
-    <aside className="flex flex-col gap-3 lg:sticky lg:top-4 lg:self-start">
-      <div className="border border-stone-300 bg-white p-2">
+    <aside className="flex flex-col gap-3 lg:sticky lg:top-5 lg:self-start">
+      <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex w-full items-center justify-between rounded-md px-3 py-3 text-left text-sm font-medium transition ${
+            className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-medium leading-tight transition ${
               activeTab === tab.id
-                ? "bg-stone-950 text-white"
-                : "text-stone-700 hover:bg-stone-100"
+                ? "bg-slate-950 text-white shadow-sm"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
             }`}
           >
             {tab.label}
-            <span aria-hidden="true">{activeTab === tab.id ? ">" : ""}</span>
+            <span
+              aria-hidden="true"
+              className={`h-2 w-2 rounded-full ${
+                activeTab === tab.id ? "bg-teal-300" : "bg-transparent"
+              }`}
+            />
           </button>
         ))}
       </div>
 
-      <div className="border border-stone-300 bg-[#eef4e8] p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-600">
-          MVP rule
+      <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-800">
+          Agent rule
         </p>
-        <p className="mt-2 text-sm leading-6 text-stone-800">
-          AI can draft, rank, and recommend. Posting needs a human approval click.
+        <p className="mt-2 text-sm leading-6 text-slate-700">
+          Find demand first. Draft helpful replies second. Ask before anything goes public.
         </p>
       </div>
     </aside>
