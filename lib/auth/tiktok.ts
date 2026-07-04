@@ -34,6 +34,17 @@ type TikTokUserInfoResponse = {
   };
 };
 
+export class TikTokOAuthError extends Error {
+  constructor(
+    message: string,
+    readonly phase: "token-exchange" | "user-info",
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "TikTokOAuthError";
+  }
+}
+
 export const tiktokScopes = ["user.info.basic"];
 export const tiktokStateCookie = "tiktok_oauth_state";
 export const tiktokConnectionCookie = "tiktok_connection";
@@ -93,7 +104,11 @@ export async function exchangeTikTokCode(code: string) {
   const token = (await response.json()) as TikTokTokenResponse;
 
   if (!response.ok || token.error || !token.access_token || !token.open_id) {
-    throw new Error(token.error_description ?? token.error ?? "TikTok token exchange failed");
+    throw new TikTokOAuthError(
+      token.error_description ?? token.error ?? "TikTok token exchange failed",
+      "token-exchange",
+      token.error,
+    );
   }
 
   return token;
@@ -114,7 +129,11 @@ export async function fetchTikTokMe(accessToken: string) {
   const user = account.data?.user;
 
   if (!response.ok || account.error?.code || !user?.open_id) {
-    throw new Error(account.error?.message ?? "Unable to load TikTok account");
+    throw new TikTokOAuthError(
+      account.error?.message ?? "Unable to load TikTok account",
+      "user-info",
+      account.error?.code,
+    );
   }
 
   return user;

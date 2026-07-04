@@ -3,6 +3,7 @@ import {
   encodeTikTokConnection,
   exchangeTikTokCode,
   fetchTikTokMe,
+  TikTokOAuthError,
   tiktokConnectionCookie,
   tiktokStateCookie,
 } from "./tiktok";
@@ -51,8 +52,25 @@ export async function handleTikTokCallback(request: NextRequest) {
     );
 
     return response;
-  } catch {
+  } catch (error) {
+    const errorReason = getTikTokErrorReason(error);
+
+    console.error("TikTok OAuth callback failed", {
+      reason: errorReason,
+      message: error instanceof Error ? error.message : "Unknown TikTok OAuth error",
+      code: error instanceof TikTokOAuthError ? error.code : undefined,
+    });
+
     redirectUrl.searchParams.set("tiktok", "error");
+    redirectUrl.searchParams.set("reason", errorReason);
     return NextResponse.redirect(redirectUrl);
   }
+}
+
+function getTikTokErrorReason(error: unknown) {
+  if (error instanceof TikTokOAuthError) {
+    return error.phase;
+  }
+
+  return "unknown";
 }
