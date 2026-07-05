@@ -1,4 +1,4 @@
-import type { Account, Draft, Opportunity, Tab } from "./types";
+import type { Account, Draft, Opportunity, ProductWorkspace, Tab } from "./types";
 
 export const initialAccounts: Account[] = [
   {
@@ -24,6 +24,16 @@ export const initialAccounts: Account[] = [
 export const initialDrafts: Draft[] = [];
 
 export const initialOpportunities: Opportunity[] = [];
+
+export const initialProductWorkspaces: ProductWorkspace[] = [
+  {
+    id: "product-1",
+    name: "Untitled product",
+    audience: "",
+    brief: "",
+    resources: [],
+  },
+];
 
 export const tabs: { id: Tab; label: string }[] = [
   { id: "opportunities", label: "Opportunities" },

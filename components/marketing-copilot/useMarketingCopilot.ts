@@ -5,8 +5,16 @@ import {
   initialAccounts,
   initialDrafts,
   initialOpportunities,
+  initialProductWorkspaces,
 } from "@/lib/marketing-data";
-import type { AccountPlatform, Draft, Opportunity, Tab } from "@/lib/types";
+import type {
+  AccountPlatform,
+  Draft,
+  Opportunity,
+  ProductResource,
+  ProductWorkspace,
+  Tab,
+} from "@/lib/types";
 import {
   getInitialTikTokResult,
   getTikTokConnectionNotice,
@@ -21,11 +29,7 @@ import {
 import { createDraftFromTikTokIdea, generateTikTokIdeas } from "./tiktok-content";
 import type { TikTokIdea } from "@/lib/types";
 
-const initialActivity = [
-  "Workspace ready",
-  "Add a product brief to start discovery",
-  "OrganicReach keeps every reply in review before posting",
-];
+const blankProductName = "Untitled product";
 
 export function useMarketingCopilot() {
   const [initialTikTokResult] = useState(getInitialTikTokResult);
@@ -38,15 +42,17 @@ export function useMarketingCopilot() {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [drafts, setDrafts] = useState(initialDrafts);
   const [opportunities, setOpportunities] = useState(initialOpportunities);
+  const [products, setProducts] = useState(initialProductWorkspaces);
+  const [activeProductId, setActiveProductId] = useState(initialProductWorkspaces[0].id);
   const [tiktokIdeas, setTikTokIdeas] = useState<TikTokIdea[]>([]);
-  const [command, setCommand] = useState("");
-  const [activity, setActivity] = useState(initialActivity);
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(initialConnectionNotice);
 
   const connectedCount = accounts.filter((account) => account.status === "Connected").length;
   const pendingCount = drafts.filter((draft) => draft.status === "Draft").length;
   const opportunityCount = opportunities.length;
+  const activeProduct = getActiveProduct(products, activeProductId);
+  const resourceCount = activeProduct.resources.length;
 
   useEffect(() => {
     if (initialTikTokResult) {
@@ -54,20 +60,14 @@ export function useMarketingCopilot() {
     }
 
     loadConnectionStatuses()
-      .then(({ accounts: nextAccounts, activity: nextActivity }) => {
+      .then(({ accounts: nextAccounts }) => {
         setAccounts((current) => mergeConnectedAccounts(current, nextAccounts));
 
         if (nextAccounts.TikTok?.status === "Connected") {
           setConnectionNotice(getTikTokConnectionNotice({ status: "connected", reason: null }));
         }
-
-        if (nextActivity.length > 0) {
-          setActivity((current) => [...nextActivity, ...current]);
-        }
       })
-      .catch(() => {
-        setActivity((current) => ["Could not load connection status", ...current]);
-      });
+      .catch(() => undefined);
   }, [initialTikTokResult]);
 
   function connectAccount(platform: AccountPlatform) {
@@ -86,7 +86,6 @@ export function useMarketingCopilot() {
         account.name === platform ? { ...account, status: "Review scopes" } : account,
       ),
     );
-    setActivity((current) => [`${platform} connection is not implemented yet`, ...current]);
   }
 
   function disconnectConnectedAccount(platform: AccountPlatform) {
@@ -94,11 +93,8 @@ export function useMarketingCopilot() {
       .then(() => {
         setAccounts((current) => markAccountDisconnected(current, platform));
         setConnectionNotice(null);
-        setActivity((current) => [`${platform} disconnected`, ...current.slice(0, 4)]);
       })
-      .catch(() => {
-        setActivity((current) => [`Could not disconnect ${platform}`, ...current.slice(0, 4)]);
-      });
+      .catch(() => undefined);
   }
 
   function approveDraft(id: number) {
@@ -109,18 +105,92 @@ export function useMarketingCopilot() {
     updateDraftStatus(id, "Scheduled");
   }
 
+  function createProduct() {
+    const nextProduct = createBlankProduct(`Product ${products.length + 1}`);
+
+    setProducts((current) => [...current, nextProduct]);
+    setActiveProductId(nextProduct.id);
+    setOpportunities([]);
+    setTikTokIdeas([]);
+    setActiveTab("brief");
+  }
+
+  function deleteProduct(id: string) {
+    const productToDelete = products.find((product) => product.id === id);
+
+    if (!productToDelete) {
+      return;
+    }
+
+    const remainingProducts = products.filter((product) => product.id !== id);
+    const nextProducts =
+      remainingProducts.length > 0 ? remainingProducts : [createBlankProduct(blankProductName)];
+    const nextActiveProduct = nextProducts[0];
+
+    setProducts(nextProducts);
+    setActiveProductId(nextActiveProduct.id);
+    setOpportunities([]);
+    setTikTokIdeas([]);
+    setActiveTab("brief");
+  }
+
+  function selectProduct(id: string) {
+    setActiveProductId(id);
+    setOpportunities([]);
+    setTikTokIdeas([]);
+    setActiveTab("brief");
+  }
+
+  function updateActiveProduct(updates: Partial<Pick<ProductWorkspace, "audience" | "brief">>) {
+    setProducts((current) =>
+      current.map((product) =>
+        product.id === activeProductId ? { ...product, ...updates } : product,
+      ),
+    );
+  }
+
+  function renameProduct(id: string, name: string) {
+    setProducts((current) =>
+      current.map((product) => (product.id === id ? { ...product, name } : product)),
+    );
+  }
+
+  function addProductResource(resource: Omit<ProductResource, "id">) {
+    const nextResource = {
+      ...resource,
+      id: Date.now(),
+    };
+
+    setProducts((current) =>
+      current.map((product) =>
+        product.id === activeProductId
+          ? { ...product, resources: [nextResource, ...product.resources] }
+          : product,
+      ),
+    );
+  }
+
+  function removeProductResource(id: number) {
+    setProducts((current) =>
+      current.map((product) =>
+        product.id === activeProductId
+          ? {
+              ...product,
+              resources: product.resources.filter((resource) => resource.id !== id),
+            }
+          : product,
+      ),
+    );
+  }
+
   function generateTikTokPlan() {
     const approvedDrafts = drafts.filter((draft) => draft.status !== "Draft");
     const nextIdeas = generateTikTokIdeas({
       approvedDrafts,
-      brief: command,
+      brief: getProductContext(activeProduct),
     });
 
     setTikTokIdeas(nextIdeas);
-    setActivity((current) => [
-      `Generated ${nextIdeas.length} TikTok short-form idea${nextIdeas.length === 1 ? "" : "s"}`,
-      ...current.slice(0, 4),
-    ]);
   }
 
   function sendTikTokIdeaToReview(id: number) {
@@ -131,23 +201,18 @@ export function useMarketingCopilot() {
     }
 
     setDrafts((current) => [createDraftFromTikTokIdea(idea), ...current]);
-    setActivity((current) => [`Moved TikTok idea to the review queue`, ...current.slice(0, 4)]);
     setActiveTab("review");
   }
 
   function generatePlan() {
-    if (!command.trim()) {
-      setActivity((current) => ["Add a product brief before searching for opportunities", ...current]);
+    const productContext = getProductContext(activeProduct);
+
+    if (!productContext.trim()) {
       return;
     }
 
-    const nextOpportunities = createOpportunityPreview(command.trim());
+    const nextOpportunities = createOpportunityPreview(productContext);
     setOpportunities(nextOpportunities);
-    setActivity((current) => [
-      `Brief received: "${command.trim()}"`,
-      `Found ${nextOpportunities.length} likely conversation opportunities`,
-      ...current.slice(0, 4),
-    ]);
     setActiveTab("opportunities");
   }
 
@@ -169,10 +234,6 @@ export function useMarketingCopilot() {
     };
 
     setDrafts((current) => [draft, ...current]);
-    setActivity((current) => [
-      `Drafted a ${opportunity.platform} reply for review`,
-      ...current.slice(0, 4),
-    ]);
     setActiveTab("review");
   }
 
@@ -185,26 +246,58 @@ export function useMarketingCopilot() {
   return {
     accounts,
     activeTab,
-    activity,
-    command,
+    activeProduct,
+    activeProductId,
     connectionNotice,
     connectedCount,
     drafts,
     opportunities,
     opportunityCount,
     pendingCount,
+    products,
+    resourceCount,
     tiktokIdeas,
+    addProductResource,
     approveDraft,
     connectAccount,
+    createProduct,
+    deleteProduct,
     disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
     generateTikTokPlan,
+    removeProductResource,
+    renameProduct,
     scheduleDraft,
+    selectProduct,
     sendTikTokIdeaToReview,
     setActiveTab,
-    setCommand,
+    updateActiveProduct,
   };
+}
+
+function createBlankProduct(name: string): ProductWorkspace {
+  return {
+    id: `product-${Date.now()}`,
+    name,
+    audience: "",
+    brief: "",
+    resources: [],
+  };
+}
+
+function getActiveProduct(products: ProductWorkspace[], activeProductId: string) {
+  return products.find((product) => product.id === activeProductId) ?? products[0];
+}
+
+function getProductContext(product: ProductWorkspace) {
+  const resources = product.resources
+    .map((resource) => `${resource.type}: ${resource.title}\n${resource.body}`)
+    .join("\n\n");
+
+  return [product.brief, product.audience ? `Audience: ${product.audience}` : "", resources]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function createOpportunityPreview(brief: string): Opportunity[] {

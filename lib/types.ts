@@ -8,7 +8,24 @@ export type Platform =
 
 export type AccountPlatform = "Reddit" | "TikTok" | "Instagram";
 
-export type Tab = "brief" | "opportunities" | "review" | "connect" | "repurpose";
+export type Tab = "brief" | "opportunities" | "review" | "connect" | "repurpose" | "products";
+
+export type ProductResourceType = "Document" | "Website" | "Customer note" | "Competitor" | "Community";
+
+export type ProductResource = {
+  id: number;
+  type: ProductResourceType;
+  title: string;
+  body: string;
+};
+
+export type ProductWorkspace = {
+  id: string;
+  name: string;
+  audience: string;
+  brief: string;
+  resources: ProductResource[];
+};
 
 export type Account = {
   name: AccountPlatform;

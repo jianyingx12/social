@@ -6,6 +6,7 @@ import { BriefPanel } from "./BriefPanel";
 import { ConnectionNoticeBanner } from "./ConnectionNoticeBanner";
 import { Metric } from "./Metric";
 import { OpportunitiesPanel } from "./OpportunitiesPanel";
+import { ProductDirectoryPanel } from "./ProductDirectoryPanel";
 import { RepurposePanel } from "./RepurposePanel";
 import { Sidebar } from "./Sidebar";
 import { useMarketingCopilot } from "./useMarketingCopilot";
@@ -14,25 +15,33 @@ export function MarketingCopilotApp() {
   const {
     accounts,
     activeTab,
-    activity,
-    command,
+    activeProduct,
+    activeProductId,
     connectionNotice,
     connectedCount,
     drafts,
     opportunities,
     opportunityCount,
     pendingCount,
+    products,
+    resourceCount,
     tiktokIdeas,
+    addProductResource,
     approveDraft,
     connectAccount,
     disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
     generateTikTokPlan,
+    createProduct,
+    deleteProduct,
+    removeProductResource,
+    renameProduct,
     scheduleDraft,
+    selectProduct,
     sendTikTokIdeaToReview,
     setActiveTab,
-    setCommand,
+    updateActiveProduct,
   } = useMarketingCopilot();
 
   return (
@@ -51,11 +60,15 @@ export function MarketingCopilotApp() {
                 Find conversations your product should be part of, draft useful responses, and keep
                 every public action in review.
               </p>
+              <p className="mt-2 text-sm font-medium text-slate-700">
+                Active product: {activeProduct.name}
+              </p>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
               <Metric label="Opportunities" value={String(opportunityCount)} />
               <Metric label="Review" value={String(pendingCount)} />
               <Metric label="Connected" value={`${connectedCount}/3`} />
+              <Metric label="Resources" value={String(resourceCount)} />
             </div>
           </div>
           <div className="border-t border-slate-200 bg-slate-950 px-5 py-3 text-sm text-slate-100 lg:px-6">
@@ -64,7 +77,17 @@ export function MarketingCopilotApp() {
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[248px_1fr]">
-          <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          <Sidebar
+            activeTab={activeTab}
+            activeProductId={activeProductId}
+            products={products}
+            onCreateProduct={createProduct}
+            onDeleteProduct={deleteProduct}
+            onOpenProducts={() => setActiveTab("products")}
+            onRenameProduct={renameProduct}
+            onSelectProduct={selectProduct}
+            onTabChange={setActiveTab}
+          />
 
           <div className="min-w-0">
             {connectionNotice && <ConnectionNoticeBanner notice={connectionNotice} />}
@@ -77,10 +100,11 @@ export function MarketingCopilotApp() {
             )}
             {activeTab === "brief" && (
               <BriefPanel
-                activity={activity}
-                command={command}
-                onCommandChange={setCommand}
+                product={activeProduct}
+                onAddResource={addProductResource}
                 onGenerate={generatePlan}
+                onProductChange={updateActiveProduct}
+                onRemoveResource={removeProductResource}
               />
             )}
             {activeTab === "review" && (
@@ -93,6 +117,16 @@ export function MarketingCopilotApp() {
                 ideas={tiktokIdeas}
                 onGenerateTikTokPlan={generateTikTokPlan}
                 onSendTikTokIdeaToReview={sendTikTokIdeaToReview}
+              />
+            )}
+            {activeTab === "products" && (
+              <ProductDirectoryPanel
+                activeProductId={activeProductId}
+                products={products}
+                onCreateProduct={createProduct}
+                onDeleteProduct={deleteProduct}
+                onRenameProduct={renameProduct}
+                onSelectProduct={selectProduct}
               />
             )}
             {activeTab === "connect" && (

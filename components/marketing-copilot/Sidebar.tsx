@@ -1,14 +1,43 @@
 import type { Tab } from "@/lib/types";
 import { tabs } from "@/lib/marketing-data";
+import type { ProductWorkspace } from "@/lib/types";
+import { ProductSwitcher } from "./ProductSwitcher";
 
 type SidebarProps = {
   activeTab: Tab;
+  activeProductId: string;
+  products: ProductWorkspace[];
+  onCreateProduct: () => void;
+  onDeleteProduct: (id: string) => void;
+  onOpenProducts: () => void;
+  onRenameProduct: (id: string, name: string) => void;
+  onSelectProduct: (id: string) => void;
   onTabChange: (tab: Tab) => void;
 };
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar({
+  activeTab,
+  activeProductId,
+  products,
+  onCreateProduct,
+  onDeleteProduct,
+  onOpenProducts,
+  onRenameProduct,
+  onSelectProduct,
+  onTabChange,
+}: SidebarProps) {
   return (
     <aside className="flex flex-col gap-3 lg:sticky lg:top-5 lg:self-start">
+      <ProductSwitcher
+        activeProductId={activeProductId}
+        products={products}
+        onCreateProduct={onCreateProduct}
+        onDeleteProduct={onDeleteProduct}
+        onOpenProducts={onOpenProducts}
+        onRenameProduct={onRenameProduct}
+        onSelectProduct={onSelectProduct}
+      />
+
       <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
         {tabs.map((tab) => (
           <button

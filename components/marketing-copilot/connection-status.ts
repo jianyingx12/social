@@ -22,14 +22,12 @@ export async function loadConnectionStatuses() {
   const redditStatus = (await redditResponse.json()) as RedditStatus;
   const tiktokStatus = (await tiktokResponse.json()) as TikTokStatus;
   const accounts: ConnectedAccountUpdates = {};
-  const activity: string[] = [];
 
   if (redditStatus.connected && redditStatus.username) {
     accounts.Reddit = {
       handle: `u/${redditStatus.username}`,
       status: "Connected",
     };
-    activity.push(`Reddit connected as u/${redditStatus.username}`);
   }
 
   if (tiktokStatus.connected && tiktokStatus.displayName) {
@@ -37,10 +35,9 @@ export async function loadConnectionStatuses() {
       handle: tiktokStatus.displayName,
       status: "Connected",
     };
-    activity.push(`TikTok connected as ${tiktokStatus.displayName}`);
   }
 
-  return { accounts, activity };
+  return { accounts };
 }
 
 export async function disconnectAccount(platform: AccountPlatform) {
