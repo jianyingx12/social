@@ -36,6 +36,7 @@ export const initialProductWorkspaces: ProductWorkspace[] = [
 ];
 
 export const tabs: { id: Tab; label: string }[] = [
+  { id: "chat", label: "Chat" },
   { id: "opportunities", label: "Opportunities" },
   { id: "brief", label: "Product brief" },
   { id: "review", label: "Review queue" },

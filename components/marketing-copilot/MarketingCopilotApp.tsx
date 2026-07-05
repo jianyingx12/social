@@ -3,6 +3,7 @@
 import { AccountPanel } from "./AccountPanel";
 import { ApprovalsPanel } from "./ApprovalsPanel";
 import { BriefPanel } from "./BriefPanel";
+import { ChatPanel } from "./ChatPanel";
 import { ConnectionNoticeBanner } from "./ConnectionNoticeBanner";
 import { Metric } from "./Metric";
 import { OpportunitiesPanel } from "./OpportunitiesPanel";
@@ -91,6 +92,15 @@ export function MarketingCopilotApp() {
 
           <div className="min-w-0">
             {connectionNotice && <ConnectionNoticeBanner notice={connectionNotice} />}
+            {activeTab === "chat" && (
+              <ChatPanel
+                accounts={accounts}
+                drafts={drafts}
+                opportunities={opportunities}
+                product={activeProduct}
+                onOpenBrief={() => setActiveTab("brief")}
+              />
+            )}
             {activeTab === "opportunities" && (
               <OpportunitiesPanel
                 opportunities={opportunities}

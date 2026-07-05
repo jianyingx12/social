@@ -37,7 +37,7 @@ export function useMarketingCopilot() {
     ? getTikTokConnectionNotice(initialTikTokResult)
     : null;
   const [activeTab, setActiveTab] = useState<Tab>(
-    initialConnectionNotice ? "connect" : "opportunities",
+    initialConnectionNotice ? "connect" : "chat",
   );
   const [accounts, setAccounts] = useState(initialAccounts);
   const [drafts, setDrafts] = useState(initialDrafts);

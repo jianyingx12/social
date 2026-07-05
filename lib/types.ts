@@ -8,7 +8,14 @@ export type Platform =
 
 export type AccountPlatform = "Reddit" | "TikTok" | "Instagram";
 
-export type Tab = "brief" | "opportunities" | "review" | "connect" | "repurpose" | "products";
+export type Tab =
+  | "chat"
+  | "brief"
+  | "opportunities"
+  | "review"
+  | "connect"
+  | "repurpose"
+  | "products";
 
 export type ProductResourceType = "Document" | "Website" | "Customer note" | "Competitor" | "Community";
 
@@ -25,6 +32,14 @@ export type ProductWorkspace = {
   audience: string;
   brief: string;
   resources: ProductResource[];
+};
+
+export type ChatRole = "user" | "assistant";
+
+export type ChatMessage = {
+  id: number;
+  role: ChatRole;
+  content: string;
 };
 
 export type Account = {
