@@ -17,7 +17,25 @@ export type Tab =
   | "repurpose"
   | "products";
 
-export type ProductResourceType = "Document" | "Website" | "Customer note" | "Competitor" | "Community";
+export type ProductType =
+  | "Software / website"
+  | "Physical product"
+  | "Book"
+  | "Course"
+  | "Service"
+  | "Creator brand"
+  | "Other";
+
+export type ProductResourceType =
+  | "Document"
+  | "Website"
+  | "Image"
+  | "Video"
+  | "Social post"
+  | "Customer note"
+  | "Competitor"
+  | "Community"
+  | "FAQ";
 
 export type ProductResource = {
   id: number;
@@ -29,10 +47,44 @@ export type ProductResource = {
 export type ProductWorkspace = {
   id: string;
   name: string;
+  productType: ProductType;
+  productUrl: string;
+  oneLine: string;
   audience: string;
+  problem: string;
+  outcome: string;
+  differentiator: string;
+  proof: string;
+  voice: string;
+  channels: string;
+  keywords: string;
+  avoid: string;
   brief: string;
   resources: ProductResource[];
+  chatMessages: ChatMessage[];
+  drafts: Draft[];
+  opportunities: Opportunity[];
+  tiktokIdeas: TikTokIdea[];
 };
+
+export type ProductBriefUpdates = Partial<
+  Pick<
+    ProductWorkspace,
+    | "productType"
+    | "productUrl"
+    | "oneLine"
+    | "audience"
+    | "problem"
+    | "outcome"
+    | "differentiator"
+    | "proof"
+    | "voice"
+    | "channels"
+    | "keywords"
+    | "avoid"
+    | "brief"
+  >
+>;
 
 export type ChatRole = "user" | "assistant";
 

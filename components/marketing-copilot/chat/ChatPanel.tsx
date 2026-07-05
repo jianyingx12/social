@@ -6,8 +6,10 @@ import type { Account, ChatMessage, Draft, Opportunity, ProductWorkspace } from 
 type ChatPanelProps = {
   accounts: Account[];
   drafts: Draft[];
+  messages: ChatMessage[];
   opportunities: Opportunity[];
   product: ProductWorkspace;
+  onMessagesChange: (messages: ChatMessage[]) => void;
   onOpenBrief: () => void;
 };
 
@@ -29,15 +31,17 @@ const prompts = [
 export function ChatPanel({
   accounts,
   drafts,
+  messages,
   opportunities,
   product,
+  onMessagesChange,
   onOpenBrief,
 }: ChatPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nextMessageId = useRef(2);
+  const displayedMessages = messages.length > 0 ? messages : starterMessages;
   const hasContext =
     Boolean(product.brief.trim()) || Boolean(product.audience.trim()) || product.resources.length > 0;
 
@@ -53,9 +57,9 @@ export function ChatPanel({
       role: "user",
       content: trimmedContent,
     };
-    const nextMessages = [...messages, userMessage];
+    const nextMessages = [...displayedMessages, userMessage];
 
-    setMessages(nextMessages);
+    onMessagesChange(nextMessages);
     setInput("");
     setError(null);
     setIsSending(true);
@@ -82,8 +86,8 @@ export function ChatPanel({
         throw new Error(data.error ?? "Could not get a reply.");
       }
 
-      setMessages((current) => [
-        ...current,
+      onMessagesChange([
+        ...nextMessages,
         {
           id: nextMessageId.current++,
           role: "assistant",
@@ -109,7 +113,7 @@ export function ChatPanel({
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">
           <div className="grid gap-3">
-            {messages.map((message) => (
+            {displayedMessages.map((message) => (
               <article
                 key={message.id}
                 className={`max-w-[88%] rounded-lg px-4 py-3 text-sm leading-6 ${

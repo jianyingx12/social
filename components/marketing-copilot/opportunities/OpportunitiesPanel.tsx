@@ -32,8 +32,8 @@ export function OpportunitiesPanel({
         {opportunities.length === 0 ? (
           <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6">
             <p className="text-sm leading-6 text-slate-600">
-              No opportunities yet. Add a product brief, then run discovery to create the first
-              ranked list.
+              No opportunities yet. Live discovery is not connected, so this area will stay empty
+              until real conversation search is added.
             </p>
           </div>
         ) : (

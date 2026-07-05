@@ -1,4 +1,4 @@
-import type { Account, Draft, Opportunity, ProductWorkspace, Tab } from "./types";
+import type { Account, ProductWorkspace, Tab } from "./types";
 
 export const initialAccounts: Account[] = [
   {
@@ -21,25 +21,39 @@ export const initialAccounts: Account[] = [
   },
 ];
 
-export const initialDrafts: Draft[] = [];
-
-export const initialOpportunities: Opportunity[] = [];
-
 export const initialProductWorkspaces: ProductWorkspace[] = [
   {
     id: "product-1",
     name: "Untitled product",
+    productType: "Other",
+    productUrl: "",
+    oneLine: "",
     audience: "",
+    problem: "",
+    outcome: "",
+    differentiator: "",
+    proof: "",
+    voice: "",
+    channels: "",
+    keywords: "",
+    avoid: "",
     brief: "",
     resources: [],
+    chatMessages: [],
+    drafts: [],
+    opportunities: [],
+    tiktokIdeas: [],
   },
 ];
 
-export const tabs: { id: Tab; label: string }[] = [
+export const productTabs: { id: Tab; label: string }[] = [
   { id: "chat", label: "Chat" },
   { id: "opportunities", label: "Opportunities" },
   { id: "brief", label: "Product brief" },
   { id: "review", label: "Review queue" },
   { id: "repurpose", label: "Repurpose" },
+];
+
+export const globalTabs: { id: Tab; label: string }[] = [
   { id: "connect", label: "Connections" },
 ];

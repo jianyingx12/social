@@ -6,10 +6,11 @@ import type { ProductWorkspace } from "@/lib/types";
 import { ProductActionsMenu } from "./ProductActionsMenu";
 
 type ProductDirectoryPanelProps = {
-  activeProductId: string;
+  activeProductId: string | null;
   products: ProductWorkspace[];
   onCreateProduct: () => void;
   onDeleteProduct: (id: string) => void;
+  onDeselectProduct: () => void;
   onRenameProduct: (id: string, name: string) => void;
   onSelectProduct: (id: string) => void;
 };
@@ -19,6 +20,7 @@ export function ProductDirectoryPanel({
   products,
   onCreateProduct,
   onDeleteProduct,
+  onDeselectProduct,
   onRenameProduct,
   onSelectProduct,
 }: ProductDirectoryPanelProps) {
@@ -67,7 +69,14 @@ export function ProductDirectoryPanel({
                       setRenamingProductId(null);
                     }}
                     onNameChange={setRenamingProductName}
-                    onOpen={() => onSelectProduct(product.id)}
+                    onOpen={() => {
+                      if (isActive) {
+                        onDeselectProduct();
+                        return;
+                      }
+
+                      onSelectProduct(product.id);
+                    }}
                   />
                   <span className="mt-1 block text-sm text-slate-600">
                     {product.resources.length} resource{product.resources.length === 1 ? "" : "s"}
@@ -83,14 +92,21 @@ export function ProductDirectoryPanel({
                 />
               </div>
               <p className="mt-4 line-clamp-3 text-sm leading-6 text-slate-600">
-                {product.brief || "No product brief yet."}
+                {product.oneLine || product.brief || "No product brief yet."}
               </p>
               <button
                 type="button"
-                onClick={() => onSelectProduct(product.id)}
+                onClick={() => {
+                  if (isActive) {
+                    onDeselectProduct();
+                    return;
+                  }
+
+                  onSelectProduct(product.id);
+                }}
                 className="mt-4 flex min-h-10 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold leading-tight text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
               >
-                Open context
+                {isActive ? "Close context" : "Open context"}
               </button>
             </article>
           );

@@ -8,10 +8,11 @@ import type { ProductWorkspace } from "@/lib/types";
 const visibleProductLimit = 3;
 
 type ProductSwitcherProps = {
-  activeProductId: string;
+  activeProductId: string | null;
   products: ProductWorkspace[];
   onCreateProduct: () => void;
   onDeleteProduct: (id: string) => void;
+  onDeselectProduct: () => void;
   onOpenProducts: () => void;
   onRenameProduct: (id: string, name: string) => void;
   onSelectProduct: (id: string) => void;
@@ -22,13 +23,14 @@ export function ProductSwitcher({
   products,
   onCreateProduct,
   onDeleteProduct,
+  onDeselectProduct,
   onOpenProducts,
   onRenameProduct,
   onSelectProduct,
 }: ProductSwitcherProps) {
   const [renamingProductId, setRenamingProductId] = useState<string | null>(null);
   const [renamingProductName, setRenamingProductName] = useState("");
-  const visibleProducts = getVisibleProducts(products, activeProductId);
+  const visibleProducts = products.slice(0, visibleProductLimit);
   const hiddenProductCount = Math.max(products.length - visibleProducts.length, 0);
 
   return (
@@ -69,14 +71,22 @@ export function ProductSwitcher({
                       setRenamingProductId(null);
                     }}
                     onNameChange={setRenamingProductName}
-                    onOpen={() => onSelectProduct(product.id)}
+                    onOpen={() => {
+                      if (isActive) {
+                        onDeselectProduct();
+                        return;
+                      }
+
+                      onSelectProduct(product.id);
+                    }}
                   />
                   <span
                     className={`mt-1 block text-xs leading-5 ${
                       isActive ? "text-slate-200" : "text-slate-500"
                     }`}
                   >
-                    {product.resources.length} resource{product.resources.length === 1 ? "" : "s"}
+                    {product.productType} - {product.resources.length} resource
+                    {product.resources.length === 1 ? "" : "s"}
                   </span>
                 </div>
                 <ProductActionsMenu
@@ -103,12 +113,4 @@ export function ProductSwitcher({
       </div>
     </div>
   );
-}
-
-function getVisibleProducts(products: ProductWorkspace[], activeProductId: string) {
-  const activeProduct = products.find((product) => product.id === activeProductId);
-  const otherProducts = products.filter((product) => product.id !== activeProductId);
-  const orderedProducts = activeProduct ? [activeProduct, ...otherProducts] : products;
-
-  return orderedProducts.slice(0, visibleProductLimit);
 }
