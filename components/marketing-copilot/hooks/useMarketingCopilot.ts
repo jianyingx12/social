@@ -11,6 +11,7 @@ import type {
   Draft,
   ProductBriefUpdates,
   ProductResource,
+  ResearchTarget,
   ProductWorkspace,
   Tab,
 } from "@/lib/types";
@@ -44,6 +45,7 @@ export function useMarketingCopilot() {
   const activeProduct = getActiveProduct(products, activeProductId);
   const drafts = activeProduct?.drafts ?? [];
   const opportunities = activeProduct?.opportunities ?? [];
+  const researchTargets = activeProduct?.researchTargets ?? [];
   const tiktokIdeas = activeProduct?.tiktokIdeas ?? [];
 
   useEffect(() => {
@@ -161,6 +163,52 @@ export function useMarketingCopilot() {
     }));
   }
 
+  function addResearchTarget(target: Omit<ResearchTarget, "id">) {
+    const nextTarget = {
+      ...target,
+      id: Date.now(),
+    };
+
+    touchActiveProduct((product) => ({
+      ...product,
+      researchTargets: [nextTarget, ...product.researchTargets],
+    }));
+  }
+
+  function removeResearchTarget(id: number) {
+    touchActiveProduct((product) => ({
+      ...product,
+      researchTargets: product.researchTargets.filter((target) => target.id !== id),
+    }));
+  }
+
+  function generateResearchTargets() {
+    if (!activeProduct) {
+      return;
+    }
+
+    const nextTargets = createResearchTargets(activeProduct).filter(
+      (target) =>
+        !activeProduct.researchTargets.some(
+          (current) =>
+            current.channel === target.channel &&
+            current.query.toLowerCase() === target.query.toLowerCase(),
+        ),
+    );
+
+    if (nextTargets.length === 0) {
+      return;
+    }
+
+    touchActiveProduct((product) => ({
+      ...product,
+      researchTargets: [
+        ...nextTargets.map((target, index) => ({ ...target, id: Date.now() + index })),
+        ...product.researchTargets,
+      ],
+    }));
+  }
+
   function updateChatMessages(messages: ChatMessage[]) {
     touchActiveProduct((product) => ({ ...product, chatMessages: messages }));
   }
@@ -244,8 +292,10 @@ export function useMarketingCopilot() {
     drafts,
     opportunities,
     products,
+    researchTargets,
     tiktokIdeas,
     addProductResource,
+    addResearchTarget,
     approveDraft,
     connectAccount,
     createProduct,
@@ -254,8 +304,10 @@ export function useMarketingCopilot() {
     disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
+    generateResearchTargets,
     generateTikTokPlan,
     removeProductResource,
+    removeResearchTarget,
     renameProduct,
     scheduleDraft,
     selectProduct,
@@ -303,11 +355,54 @@ function createBlankProduct(name: string): ProductWorkspace {
     avoid: "",
     brief: "",
     resources: [],
+    researchTargets: [],
     chatMessages: [],
     drafts: [],
     opportunities: [],
     tiktokIdeas: [],
   };
+}
+
+function createResearchTargets(product: ProductWorkspace): Omit<ResearchTarget, "id">[] {
+  const keywords = splitSignals(product.keywords);
+  const channels = splitSignals(product.channels);
+  const problem = product.problem || product.oneLine || product.audience || product.name;
+  const primaryKeyword = keywords[0] || product.oneLine || product.name;
+  const communityQuery = channels[0] || product.audience || product.productType;
+
+  return [
+    {
+      channel: "Search",
+      query: `${primaryKeyword} problem`,
+      signal: "People actively searching for help, alternatives, or how-to advice.",
+      notes: "Look for recurring question wording, comparison searches, and pages ranking for pain-aware queries.",
+    },
+    {
+      channel: "Reddit",
+      query: `${communityQuery} ${problem}`,
+      signal: "Complaints, help requests, workaround discussions, and recommendation threads.",
+      notes: "Prioritize threads where a useful answer can stand on its own without a product mention.",
+    },
+    {
+      channel: "YouTube",
+      query: primaryKeyword,
+      signal: "Comment sections where viewers ask follow-up questions or describe what tutorials missed.",
+      notes: "Look for repeated confusion, requested tools, and comments comparing current workflows.",
+    },
+    {
+      channel: "Review site",
+      query: `${primaryKeyword} reviews alternatives`,
+      signal: "Competitor praise, objections, missing features, and switching triggers.",
+      notes: "Useful for positioning and reply angles, even if it does not produce direct conversations.",
+    },
+  ];
+}
+
+function splitSignals(value: string) {
+  return value
+    .split(/[,;\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function getActiveProduct(products: ProductWorkspace[], activeProductId: string | null) {

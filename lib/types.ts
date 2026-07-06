@@ -11,6 +11,7 @@ export type AccountPlatform = "Reddit" | "TikTok" | "Instagram";
 export type Tab =
   | "chat"
   | "brief"
+  | "resources"
   | "opportunities"
   | "review"
   | "connect"
@@ -44,6 +45,29 @@ export type ProductResource = {
   body: string;
 };
 
+export type ResearchChannel =
+  | "Reddit"
+  | "Hacker News"
+  | "Indie Hackers"
+  | "YouTube"
+  | "TikTok"
+  | "Instagram"
+  | "LinkedIn"
+  | "X / Twitter"
+  | "Niche forum"
+  | "Search"
+  | "Review site"
+  | "Customer data"
+  | "Other";
+
+export type ResearchTarget = {
+  id: number;
+  channel: ResearchChannel;
+  query: string;
+  signal: string;
+  notes: string;
+};
+
 export type ProductWorkspace = {
   id: string;
   name: string;
@@ -61,6 +85,7 @@ export type ProductWorkspace = {
   avoid: string;
   brief: string;
   resources: ProductResource[];
+  researchTargets: ResearchTarget[];
   chatMessages: ChatMessage[];
   drafts: Draft[];
   opportunities: Opportunity[];
@@ -87,6 +112,15 @@ export type ProductBriefUpdates = Partial<
 >;
 
 export type ChatRole = "user" | "assistant";
+
+export type IntakePhaseId =
+  | "product"
+  | "customer"
+  | "outcome"
+  | "positioning"
+  | "voice"
+  | "listening"
+  | "ready";
 
 export type ChatMessage = {
   id: number;

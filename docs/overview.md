@@ -31,3 +31,5 @@ The connection system is infrastructure. Users can connect accounts through plat
 The first real connection milestones are OAuth identity connections for Reddit and TikTok. Reddit supports the core opportunity-discovery direction. TikTok is useful later for Login Kit, content repurposing, analytics, and comment workflows. The TikTok callback path is `/api/auth/callback/tiktok`. In production, access and refresh tokens should be stored encrypted in server-side storage rather than treated as UI state.
 
 The guiding principle is trust. OrganicReach can find, draft, rank, recommend, and prepare, but the founder stays in control before anything goes live.
+
+For the current implementation state and planned workflow, see [app-state.md](app-state.md).

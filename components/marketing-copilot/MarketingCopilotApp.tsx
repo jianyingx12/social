@@ -6,10 +6,11 @@ import { ConnectionNoticeBanner } from "../connections/ConnectionNoticeBanner";
 import { useMarketingCopilot } from "./hooks/useMarketingCopilot";
 import { AppHeader } from "../layout/AppHeader";
 import { Sidebar } from "../layout/Sidebar";
-import { OpportunitiesPanel } from "./opportunities/OpportunitiesPanel";
 import { BriefPanel } from "./product-brief/BriefPanel";
 import { ProductDirectoryPanel } from "./products/ProductDirectoryPanel";
+import { ResearchPanel } from "./research/ResearchPanel";
 import { RepurposePanel } from "./repurpose/RepurposePanel";
+import { ResourcesPanel } from "./resources/ResourcesPanel";
 import { ApprovalsPanel } from "./review/ApprovalsPanel";
 
 export function MarketingCopilotApp() {
@@ -22,18 +23,22 @@ export function MarketingCopilotApp() {
     drafts,
     opportunities,
     products,
+    researchTargets,
     tiktokIdeas,
+    addResearchTarget,
     addProductResource,
     approveDraft,
     connectAccount,
     disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
+    generateResearchTargets,
     generateTikTokPlan,
     createProduct,
     deleteProduct,
     deselectProduct,
     removeProductResource,
+    removeResearchTarget,
     renameProduct,
     scheduleDraft,
     selectProduct,
@@ -73,21 +78,32 @@ export function MarketingCopilotApp() {
                 product={activeProduct}
                 onMessagesChange={updateChatMessages}
                 onOpenBrief={() => setActiveTab("brief")}
+                onProductChange={updateActiveProduct}
               />
             )}
             {activeTab === "opportunities" && activeProduct && (
-              <OpportunitiesPanel
+              <ResearchPanel
                 opportunities={opportunities}
+                product={activeProduct}
+                researchTargets={researchTargets}
+                onAddTarget={addResearchTarget}
                 onDraft={draftOpportunity}
+                onGenerateTargets={generateResearchTargets}
                 onOpenBrief={() => setActiveTab("brief")}
+                onRemoveTarget={removeResearchTarget}
               />
             )}
             {activeTab === "brief" && activeProduct && (
               <BriefPanel
                 product={activeProduct}
-                onAddResource={addProductResource}
                 onGenerate={generatePlan}
                 onProductChange={updateActiveProduct}
+              />
+            )}
+            {activeTab === "resources" && activeProduct && (
+              <ResourcesPanel
+                resources={activeProduct.resources}
+                onAddResource={addProductResource}
                 onRemoveResource={removeProductResource}
               />
             )}

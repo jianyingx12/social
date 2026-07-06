@@ -4,13 +4,17 @@ import { useState } from "react";
 import type { ProductResource, ProductResourceType } from "@/lib/types";
 import { resourceTypes } from "./config";
 
-type AssetsPanelProps = {
+type ResourcesPanelProps = {
   resources: ProductResource[];
   onAddResource: (resource: Omit<ProductResource, "id">) => void;
   onRemoveResource: (id: number) => void;
 };
 
-export function AssetsPanel({ resources, onAddResource, onRemoveResource }: AssetsPanelProps) {
+export function ResourcesPanel({
+  resources,
+  onAddResource,
+  onRemoveResource,
+}: ResourcesPanelProps) {
   const [resourceType, setResourceType] = useState<ProductResourceType>("Website");
   const [resourceTitle, setResourceTitle] = useState("");
   const [resourceBody, setResourceBody] = useState("");
@@ -30,9 +34,9 @@ export function AssetsPanel({ resources, onAddResource, onRemoveResource }: Asse
   }
 
   return (
-    <aside className="grid gap-4 lg:self-start">
+    <section className="grid gap-4">
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">Assets and context</h2>
+        <h2 className="text-2xl font-semibold text-slate-950">Resources</h2>
         <p className="mt-1 text-sm leading-6 text-slate-600">
           Add screenshots, demos, links, quotes, competitors, and community notes as resources.
         </p>
@@ -108,6 +112,6 @@ export function AssetsPanel({ resources, onAddResource, onRemoveResource }: Asse
           )}
         </div>
       </div>
-    </aside>
+    </section>
   );
 }

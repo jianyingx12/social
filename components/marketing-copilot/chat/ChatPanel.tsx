@@ -1,7 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { Account, ChatMessage, Draft, Opportunity, ProductWorkspace } from "@/lib/types";
+import type {
+  Account,
+  ChatMessage,
+  Draft,
+  Opportunity,
+  ProductBriefUpdates,
+  ProductWorkspace,
+} from "@/lib/types";
+import { getCurrentIntakePhase, intakePhases, isPhaseComplete } from "./intake-phases";
 
 type ChatPanelProps = {
   accounts: Account[];
@@ -11,6 +19,7 @@ type ChatPanelProps = {
   product: ProductWorkspace;
   onMessagesChange: (messages: ChatMessage[]) => void;
   onOpenBrief: () => void;
+  onProductChange: (updates: ProductBriefUpdates) => void;
 };
 
 const starterMessages: ChatMessage[] = [
@@ -18,14 +27,8 @@ const starterMessages: ChatMessage[] = [
     id: 1,
     role: "assistant",
     content:
-      "Tell me what you want to work on: positioning, finding users, drafting replies, or turning an idea into TikTok content.",
+      "We'll build the product profile one phase at a time. Start with the current question, and I'll keep the brief updated as we go.",
   },
-];
-
-const prompts = [
-  "What should I improve in this product brief?",
-  "Give me 5 places to look for early users.",
-  "Turn this product context into a TikTok content plan.",
 ];
 
 export function ChatPanel({
@@ -36,12 +39,15 @@ export function ChatPanel({
   product,
   onMessagesChange,
   onOpenBrief,
+  onProductChange,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nextMessageId = useRef(2);
   const displayedMessages = messages.length > 0 ? messages : starterMessages;
+  const currentPhase = getCurrentIntakePhase(product);
+  const completedPhaseCount = intakePhases.filter((phase) => isPhaseComplete(product, phase)).length;
   const hasContext =
     Boolean(product.brief.trim()) || Boolean(product.audience.trim()) || product.resources.length > 0;
 
@@ -72,13 +78,18 @@ export function ChatPanel({
         },
         body: JSON.stringify({
           messages: nextMessages,
+          intakePhase: currentPhase.id,
           product,
           drafts,
           opportunities,
           accounts,
         }),
       });
-      const data = (await response.json()) as { reply?: string; error?: string };
+      const data = (await response.json()) as {
+        reply?: string;
+        briefUpdates?: ProductBriefUpdates;
+        error?: string;
+      };
 
       const reply = data.reply;
 
@@ -86,6 +97,7 @@ export function ChatPanel({
         throw new Error(data.error ?? "Could not get a reply.");
       }
 
+      applyBriefUpdates(data.briefUpdates);
       onMessagesChange([
         ...nextMessages,
         {
@@ -105,10 +117,25 @@ export function ChatPanel({
     <section className="grid gap-4 xl:grid-cols-[1fr_320px]">
       <div className="flex min-h-[640px] flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-4 sm:p-5">
-          <h2 className="text-2xl font-semibold text-slate-950">Chat</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Ask the copilot about this product, the review queue, and your connected channels.
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">
+                Phase {Math.min(completedPhaseCount + 1, intakePhases.length)}/
+                {intakePhases.length}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                {currentPhase.title}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{currentPhase.question}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenBrief}
+              className="flex min-h-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+            >
+              Edit brief
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">
@@ -140,10 +167,11 @@ export function ChatPanel({
             </p>
           )}
           <div className="flex flex-wrap gap-2">
-            {prompts.map((prompt) => (
+            {currentPhase.examples.map((prompt) => (
               <button
                 key={prompt}
-                onClick={() => sendMessage(prompt)}
+                type="button"
+                onClick={() => setInput((current) => (current ? `${current}\n${prompt}` : prompt))}
                 className="rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
               >
                 {prompt}
@@ -160,7 +188,7 @@ export function ChatPanel({
                   sendMessage();
                 }
               }}
-              placeholder="Ask about positioning, channels, replies, or TikTok ideas..."
+              placeholder={currentPhase.question}
               className="min-h-24 flex-1 resize-none rounded-md border border-slate-300 bg-white p-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
             />
             <button
@@ -176,12 +204,30 @@ export function ChatPanel({
 
       <aside className="grid gap-4 lg:self-start">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-950">Context</h2>
-          <div className="mt-4 grid gap-3 text-sm">
-            <ContextRow label="Product" value={product.name} />
-            <ContextRow label="Resources" value={String(product.resources.length)} />
-            <ContextRow label="Drafts" value={String(drafts.length)} />
-            <ContextRow label="Opportunities" value={String(opportunities.length)} />
+          <h2 className="text-lg font-semibold text-slate-950">Intake phases</h2>
+          <div className="mt-4 grid gap-2 text-sm">
+            {intakePhases.map((phase) => {
+              const isCurrent = phase.id === currentPhase.id;
+              const isComplete = isPhaseComplete(product, phase);
+
+              return (
+                <div
+                  key={phase.id}
+                  className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 ${
+                    isCurrent
+                      ? "border-slate-950 bg-slate-950 text-white"
+                      : "border-slate-200 bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <span className="font-medium">{phase.label}</span>
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      isCurrent ? "bg-teal-300" : isComplete ? "bg-teal-500" : "bg-slate-300"
+                    }`}
+                  />
+                </div>
+              );
+            })}
           </div>
           {!hasContext && (
             <button
@@ -194,24 +240,60 @@ export function ChatPanel({
         </div>
 
         <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 text-white shadow-sm">
-          <h2 className="text-lg font-semibold">What it can do now</h2>
+          <h2 className="text-lg font-semibold">Workspace state</h2>
           <div className="mt-4 grid gap-2 text-sm leading-6 text-slate-200">
-            <p>Use the active product context.</p>
-            <p>Draft founder-led marketing ideas.</p>
-            <p>Reference current opportunities and review items.</p>
-            <p>Keep posting actions behind approval.</p>
+            <ContextRow label="Resources" value={String(product.resources.length)} dark />
+            <ContextRow label="Opportunities" value={String(opportunities.length)} dark />
+            <ContextRow label="Drafts" value={String(drafts.length)} dark />
           </div>
         </div>
       </aside>
     </section>
   );
+
+  function applyBriefUpdates(updates: ProductBriefUpdates | undefined) {
+    if (!updates) {
+      return;
+    }
+
+    const emptyFieldUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([field, value]) => {
+        const currentValue = product[field as keyof ProductBriefUpdates];
+
+        return (
+          typeof value === "string" &&
+          value.trim() &&
+          (!String(currentValue ?? "").trim() ||
+            (field === "productType" && currentValue === "Other"))
+        );
+      }),
+    ) as ProductBriefUpdates;
+
+    if (Object.keys(emptyFieldUpdates).length > 0) {
+      onProductChange(emptyFieldUpdates);
+    }
+  }
 }
 
-function ContextRow({ label, value }: { label: string; value: string }) {
+function ContextRow({
+  label,
+  value,
+  dark = false,
+}: {
+  label: string;
+  value: string;
+  dark?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-      <span className="text-slate-600">{label}</span>
-      <span className="min-w-0 truncate font-semibold text-slate-950">{value}</span>
+    <div
+      className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 ${
+        dark ? "bg-slate-800" : "border border-slate-200 bg-slate-50"
+      }`}
+    >
+      <span className={dark ? "text-slate-300" : "text-slate-600"}>{label}</span>
+      <span className={`min-w-0 truncate font-semibold ${dark ? "text-white" : "text-slate-950"}`}>
+        {value}
+      </span>
     </div>
   );
 }

@@ -39,6 +39,7 @@ export const initialProductWorkspaces: ProductWorkspace[] = [
     avoid: "",
     brief: "",
     resources: [],
+    researchTargets: [],
     chatMessages: [],
     drafts: [],
     opportunities: [],
@@ -48,8 +49,9 @@ export const initialProductWorkspaces: ProductWorkspace[] = [
 
 export const productTabs: { id: Tab; label: string }[] = [
   { id: "chat", label: "Chat" },
-  { id: "opportunities", label: "Opportunities" },
+  { id: "opportunities", label: "Research" },
   { id: "brief", label: "Product brief" },
+  { id: "resources", label: "Resources" },
   { id: "review", label: "Review queue" },
   { id: "repurpose", label: "Repurpose" },
 ];

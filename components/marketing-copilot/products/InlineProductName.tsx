@@ -24,11 +24,17 @@ export function InlineProductName({
   onOpen,
 }: InlineProductNameProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const wasEditingRef = useRef(false);
 
   useEffect(() => {
-    if (isEditing) {
-      window.requestAnimationFrame(() => inputRef.current?.select());
+    if (isEditing && !wasEditingRef.current) {
+      const frameId = window.requestAnimationFrame(() => inputRef.current?.select());
+      wasEditingRef.current = isEditing;
+
+      return () => window.cancelAnimationFrame(frameId);
     }
+
+    wasEditingRef.current = isEditing;
   }, [isEditing, name]);
 
   function commitName() {

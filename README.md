@@ -111,4 +111,4 @@ https://your-domain.example/tiktok-example.txt
 
 This repo is still a prototype. The current Reddit and TikTok connections store only enough local state to show that the account connected. Production token storage needs to move into encrypted server-side storage.
 
-More product context is in [docs/overview.md](docs/overview.md).
+More product context is in [docs/overview.md](docs/overview.md). Current product state, implemented pieces, and near-term direction are in [docs/app-state.md](docs/app-state.md).

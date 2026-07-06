@@ -7,9 +7,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const chatRequest = validateMarketingChatRequest(body);
-    const reply = await createMarketingChatReply(chatRequest);
+    const result = await createMarketingChatReply(chatRequest);
 
-    return Response.json({ reply });
+    return Response.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not create a chat reply.";
 

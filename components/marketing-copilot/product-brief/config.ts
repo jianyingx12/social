@@ -1,4 +1,4 @@
-import type { ProductBriefUpdates, ProductResourceType, ProductType } from "@/lib/types";
+import type { ProductBriefUpdates, ProductType } from "@/lib/types";
 
 export type InterviewStep = "basics" | "audience" | "positioning" | "promotion" | "rules" | "notes";
 
@@ -18,18 +18,6 @@ export const productTypes: ProductType[] = [
   "Service",
   "Creator brand",
   "Other",
-];
-
-export const resourceTypes: ProductResourceType[] = [
-  "Document",
-  "Website",
-  "Image",
-  "Video",
-  "Social post",
-  "Customer note",
-  "Competitor",
-  "Community",
-  "FAQ",
 ];
 
 export const interviewSteps: InterviewStepConfig[] = [

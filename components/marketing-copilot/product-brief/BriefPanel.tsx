@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ProductBriefUpdates, ProductResource, ProductWorkspace } from "@/lib/types";
-import { AssetsPanel } from "./AssetsPanel";
+import type { ProductBriefUpdates, ProductWorkspace } from "@/lib/types";
 import { BriefStepFields } from "./BriefStepFields";
 import { BriefStepNav } from "./BriefStepNav";
 import { interviewSteps, type InterviewStep } from "./config";
@@ -10,18 +9,14 @@ import { getCompletionCount, isStepComplete } from "./progress";
 
 type BriefPanelProps = {
   product: ProductWorkspace;
-  onAddResource: (resource: Omit<ProductResource, "id">) => void;
   onProductChange: (updates: ProductBriefUpdates) => void;
   onGenerate: () => void;
-  onRemoveResource: (id: number) => void;
 };
 
 export function BriefPanel({
   product,
-  onAddResource,
   onProductChange,
   onGenerate,
-  onRemoveResource,
 }: BriefPanelProps) {
   const [activeStep, setActiveStep] = useState<InterviewStep>("basics");
   const completionCount = getCompletionCount(product);
@@ -48,7 +43,7 @@ export function BriefPanel({
   }
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[1fr_320px]">
+    <section>
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -131,12 +126,6 @@ export function BriefPanel({
           </div>
         </div>
       </div>
-
-      <AssetsPanel
-        resources={product.resources}
-        onAddResource={onAddResource}
-        onRemoveResource={onRemoveResource}
-      />
     </section>
   );
 }

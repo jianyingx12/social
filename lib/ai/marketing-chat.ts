@@ -1,7 +1,17 @@
-import type { Account, ChatMessage, Draft, Opportunity, ProductWorkspace } from "@/lib/types";
+import type {
+  Account,
+  ChatMessage,
+  Draft,
+  IntakePhaseId,
+  Opportunity,
+  ProductBriefUpdates,
+  ProductType,
+  ProductWorkspace,
+} from "@/lib/types";
 
 type MarketingChatRequest = {
   messages: ChatMessage[];
+  intakePhase?: IntakePhaseId;
   product: ProductWorkspace;
   drafts: Draft[];
   opportunities: Opportunity[];
@@ -27,6 +37,30 @@ type OpenAIResponse = {
 };
 
 const defaultModel = "gpt-5.5";
+const productTypes: ProductType[] = [
+  "Software / website",
+  "Physical product",
+  "Book",
+  "Course",
+  "Service",
+  "Creator brand",
+  "Other",
+];
+const briefUpdateFields = [
+  "productType",
+  "productUrl",
+  "oneLine",
+  "audience",
+  "problem",
+  "outcome",
+  "differentiator",
+  "proof",
+  "voice",
+  "channels",
+  "keywords",
+  "avoid",
+  "brief",
+] as const;
 
 export function validateMarketingChatRequest(body: unknown): MarketingChatRequest {
   if (!body || typeof body !== "object") {
@@ -41,6 +75,7 @@ export function validateMarketingChatRequest(body: unknown): MarketingChatReques
 
   return {
     messages: request.messages.slice(-10),
+    intakePhase: request.intakePhase,
     product: request.product,
     drafts: request.drafts ?? [],
     opportunities: request.opportunities ?? [],
@@ -75,25 +110,42 @@ export async function createMarketingChatReply(request: MarketingChatRequest) {
     throw new Error(data.error?.message ?? "OpenAI request failed.");
   }
 
-  return extractResponseText(data);
+  return parseMarketingChatResponse(extractResponseText(data));
 }
 
 function buildInstructions() {
   return [
     "You are OrganicReach, a practical founder-led marketing copilot.",
-    "Use the provided product workspace as context.",
-    "Help the user clarify positioning, find demand signals, draft replies, and plan TikTok or community content.",
+    "Your first job is organic advertising intake: understand the product, the buyer pain, customer language, listening channels, and how to helpfully enter real conversations.",
+    "Use the provided product workspace as context. If important brief fields are missing, ask one or two focused follow-up questions instead of giving a generic menu.",
+    "Stay inside the current intake phase unless the user clearly jumps ahead. Ask one focused next question for that phase.",
+    "When the user provides product details, infer product brief fields from the conversation and return them in briefUpdates.",
+    "Only include briefUpdates for fields you can infer with reasonable confidence from the user's words or existing context.",
+    "Never invent proof, URLs, claims, connected accounts, or public actions.",
+    "Favor prompts and advice that reveal demand signals: complaints, comparison posts, help requests, workaround discussions, buying triggers, and exact customer phrases.",
+    "Frame marketing as useful participation: answer the person's problem first, mention the product only when it is genuinely relevant, and keep public drafts non-spammy.",
+    "After intake, help the user clarify organic positioning, find demand signals, draft helpful replies, and plan TikTok or community content.",
     "Do not claim you posted, searched live communities, or changed connected accounts unless the context says that happened.",
     "Keep answers concise, specific, and action-oriented.",
     "When a public post or reply is suggested, make it useful even if nobody clicks a link.",
+    "Return only valid JSON in this exact shape: {\"reply\":\"string\",\"briefUpdates\":{}}.",
+    `briefUpdates may contain only these fields: ${briefUpdateFields.join(", ")}.`,
+    `productType must be one of: ${productTypes.join(", ")}.`,
   ].join("\n");
 }
 
-function buildInput({ messages, product, drafts, opportunities, accounts }: MarketingChatRequest) {
+function buildInput({
+  messages,
+  intakePhase,
+  product,
+  drafts,
+  opportunities,
+  accounts,
+}: MarketingChatRequest) {
   return [
     {
       role: "developer",
-      content: buildContext(product, drafts, opportunities, accounts),
+      content: buildContext(product, drafts, opportunities, accounts, intakePhase),
     },
     ...messages.map((message) => ({
       role: message.role,
@@ -107,9 +159,14 @@ function buildContext(
   drafts: Draft[],
   opportunities: Opportunity[],
   accounts: Account[],
+  intakePhase?: IntakePhaseId,
 ) {
   const resources = product.resources
     .map((resource) => `- ${resource.type}: ${resource.title}\n  ${resource.body}`)
+    .join("\n");
+  const researchTargetSummary = product.researchTargets
+    .slice(0, 8)
+    .map((target) => `- ${target.channel}: ${target.query}\n  Signal: ${target.signal}`)
     .join("\n");
   const opportunitySummary = opportunities
     .slice(0, 5)
@@ -125,6 +182,7 @@ function buildContext(
 
   return [
     `Active product: ${product.name}`,
+    `Current intake phase: ${intakePhase || "unknown"}`,
     `Product type: ${product.productType}`,
     `One-line description: ${product.oneLine || "Not provided"}`,
     `Link: ${product.productUrl || "Not provided"}`,
@@ -139,6 +197,7 @@ function buildContext(
     `Avoid/rules: ${product.avoid || "Not provided"}`,
     `Extra brief notes: ${product.brief || "Not provided"}`,
     `Resources:\n${resources || "- None yet"}`,
+    `Research targets:\n${researchTargetSummary || "- None yet"}`,
     `Current opportunities:\n${opportunitySummary || "- None yet"}`,
     `Review queue:\n${draftSummary || "- Empty"}`,
     `Connected accounts:\n${accountSummary || "- None"}`,
@@ -162,4 +221,66 @@ function extractResponseText(data: OpenAIResponse) {
   }
 
   return text;
+}
+
+function parseMarketingChatResponse(text: string) {
+  const parsed = parseJsonObject(text);
+
+  if (!parsed) {
+    return {
+      reply: text,
+      briefUpdates: {},
+    };
+  }
+
+  return {
+    reply: typeof parsed.reply === "string" ? parsed.reply : text,
+    briefUpdates: sanitizeBriefUpdates(parsed.briefUpdates),
+  };
+}
+
+function parseJsonObject(text: string) {
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    const match = text.match(/\{[\s\S]*\}/);
+
+    if (!match) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(match[0]) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function sanitizeBriefUpdates(value: unknown): ProductBriefUpdates {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const source = value as Record<string, unknown>;
+  const updates: ProductBriefUpdates = {};
+
+  for (const field of briefUpdateFields) {
+    const fieldValue = source[field];
+
+    if (typeof fieldValue !== "string" || !fieldValue.trim()) {
+      continue;
+    }
+
+    if (field === "productType") {
+      if (productTypes.includes(fieldValue as ProductType)) {
+        updates.productType = fieldValue as ProductType;
+      }
+      continue;
+    }
+
+    updates[field] = fieldValue.trim();
+  }
+
+  return updates;
 }
