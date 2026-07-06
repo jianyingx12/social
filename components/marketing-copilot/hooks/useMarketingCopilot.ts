@@ -26,7 +26,8 @@ import {
   markAccountDisconnected,
   mergeConnectedAccounts,
 } from "../../connections/connection-status";
-import { createDraftFromTikTokIdea, generateTikTokIdeas } from "../repurpose/tiktok-content";
+import { createDraftFromContentIdea } from "../repurpose/content-idea";
+import { useContentIdeaGeneration } from "../repurpose/useContentIdeaGeneration";
 
 export function useMarketingCopilot() {
   const [initialTikTokResult] = useState(getInitialTikTokResult);
@@ -41,12 +42,14 @@ export function useMarketingCopilot() {
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(initialConnectionNotice);
+  const { contentIdeaError, generateContentIdeas, isGeneratingContentIdeas } =
+    useContentIdeaGeneration();
 
   const activeProduct = getActiveProduct(products, activeProductId);
   const drafts = activeProduct?.drafts ?? [];
   const opportunities = activeProduct?.opportunities ?? [];
   const researchTargets = activeProduct?.researchTargets ?? [];
-  const tiktokIdeas = activeProduct?.tiktokIdeas ?? [];
+  const contentIdeas = activeProduct?.contentIdeas ?? [];
 
   useEffect(() => {
     if (initialTikTokResult) {
@@ -213,22 +216,23 @@ export function useMarketingCopilot() {
     touchActiveProduct((product) => ({ ...product, chatMessages: messages }));
   }
 
-  function generateTikTokPlan() {
+  async function generateContentPlan() {
     if (!activeProduct) {
       return;
     }
 
-    const approvedDrafts = drafts.filter((draft) => draft.status !== "Draft");
-    const nextIdeas = generateTikTokIdeas({
-      approvedDrafts,
-      brief: getProductContext(activeProduct),
-    });
+    const productId = activeProduct.id;
 
-    touchActiveProduct((product) => ({ ...product, tiktokIdeas: nextIdeas }));
+    await generateContentIdeas({
+      product: activeProduct,
+      onIdeas: (ideas) => {
+        touchProduct(productId, (product) => ({ ...product, contentIdeas: ideas }));
+      },
+    });
   }
 
-  function sendTikTokIdeaToReview(id: number) {
-    const idea = tiktokIdeas.find((item) => item.id === id);
+  function sendContentIdeaToReview(id: number) {
+    const idea = contentIdeas.find((item) => item.id === id);
 
     if (!idea) {
       return;
@@ -236,9 +240,18 @@ export function useMarketingCopilot() {
 
     touchActiveProduct((product) => ({
       ...product,
-      drafts: [createDraftFromTikTokIdea(idea), ...product.drafts],
+      drafts: [createDraftFromContentIdea(idea), ...product.drafts],
     }));
     setActiveTab("review");
+  }
+
+  function updateDraft(id: number, updates: Pick<Draft, "title" | "body">) {
+    touchActiveProduct((product) => ({
+      ...product,
+      drafts: product.drafts.map((draft) =>
+        draft.id === id ? { ...draft, ...updates } : draft,
+      ),
+    }));
   }
 
   function generatePlan() {
@@ -293,7 +306,9 @@ export function useMarketingCopilot() {
     opportunities,
     products,
     researchTargets,
-    tiktokIdeas,
+    contentIdeaError,
+    contentIdeas,
+    isGeneratingContentIdeas,
     addProductResource,
     addResearchTarget,
     approveDraft,
@@ -304,16 +319,17 @@ export function useMarketingCopilot() {
     disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
+    generateContentPlan,
     generateResearchTargets,
-    generateTikTokPlan,
     removeProductResource,
     removeResearchTarget,
     renameProduct,
     scheduleDraft,
     selectProduct,
-    sendTikTokIdeaToReview,
+    sendContentIdeaToReview,
     setActiveTab,
     updateChatMessages,
+    updateDraft,
     updateActiveProduct,
   };
 
@@ -322,15 +338,22 @@ export function useMarketingCopilot() {
       return;
     }
 
+    touchProduct(activeProductId, update);
+  }
+
+  function touchProduct(
+    productId: string,
+    update: (product: ProductWorkspace) => ProductWorkspace,
+  ) {
     setProducts((current) => {
-      const product = current.find((item) => item.id === activeProductId);
+      const product = current.find((item) => item.id === productId);
 
       if (!product) {
         return current;
       }
 
       const updatedProduct = update(product);
-      const otherProducts = current.filter((item) => item.id !== activeProductId);
+      const otherProducts = current.filter((item) => item.id !== productId);
 
       return [updatedProduct, ...otherProducts];
     });
@@ -359,7 +382,7 @@ function createBlankProduct(name: string): ProductWorkspace {
     chatMessages: [],
     drafts: [],
     opportunities: [],
-    tiktokIdeas: [],
+    contentIdeas: [],
   };
 }
 

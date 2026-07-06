@@ -17,7 +17,7 @@ The most important early workflow is:
 
 Reddit is the clearest first channel because it is built around public discussions, niche communities, and question-driven threads. That makes it possible for OrganicReach to act like a marketing operator instead of a posting bot. The product can help founders find useful moments to join conversations without manually searching every community themselves.
 
-TikTok, Instagram, YouTube Shorts, LinkedIn, and similar broadcast channels still have a role, but they are secondary. They are better for repurposing and learning than for discovering demand. OrganicReach can eventually turn a product demo, customer answer, or high-performing community reply into short-form video ideas, captions, clips, and follow-up posts. It can also study account performance and comments to recommend what content to make next.
+Instagram, TikTok, LinkedIn, X / Twitter, and similar broadcast channels still have a role, but they are secondary. They are better for repurposing and learning than for discovering demand. For the MVP, OrganicReach can generate content ideas with editable draft copy and guidance on what kind of image, video, link, or other media to attach. The founder still chooses the actual asset and approves the final post.
 
 The MVP should focus on four product areas:
 

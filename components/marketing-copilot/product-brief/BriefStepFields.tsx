@@ -72,7 +72,7 @@ export function BriefStepFields({ product, step, onProductChange }: BriefStepFie
           <TextArea
             label="What makes it different"
             value={product.differentiator}
-            placeholder="Unlike generic video tools, it is built around coaching language, plays, and player feedback."
+            placeholder="Unlike generic content tools, it is built around coaching language, plays, and player feedback."
             onChange={(differentiator) => onProductChange({ differentiator })}
           />
           <TextArea

@@ -24,7 +24,9 @@ export function MarketingCopilotApp() {
     opportunities,
     products,
     researchTargets,
-    tiktokIdeas,
+    contentIdeaError,
+    contentIdeas,
+    isGeneratingContentIdeas,
     addResearchTarget,
     addProductResource,
     approveDraft,
@@ -32,8 +34,8 @@ export function MarketingCopilotApp() {
     disconnectConnectedAccount,
     draftOpportunity,
     generatePlan,
+    generateContentPlan,
     generateResearchTargets,
-    generateTikTokPlan,
     createProduct,
     deleteProduct,
     deselectProduct,
@@ -42,9 +44,10 @@ export function MarketingCopilotApp() {
     renameProduct,
     scheduleDraft,
     selectProduct,
-    sendTikTokIdeaToReview,
+    sendContentIdeaToReview,
     setActiveTab,
     updateChatMessages,
+    updateDraft,
     updateActiveProduct,
   } = useMarketingCopilot();
 
@@ -108,15 +111,22 @@ export function MarketingCopilotApp() {
               />
             )}
             {activeTab === "review" && activeProduct && (
-              <ApprovalsPanel drafts={drafts} onApprove={approveDraft} onSchedule={scheduleDraft} />
+              <ApprovalsPanel
+                drafts={drafts}
+                onApprove={approveDraft}
+                onDraftChange={updateDraft}
+                onSchedule={scheduleDraft}
+              />
             )}
             {activeTab === "repurpose" && activeProduct && (
               <RepurposePanel
                 accounts={accounts}
                 drafts={drafts}
-                ideas={tiktokIdeas}
-                onGenerateTikTokPlan={generateTikTokPlan}
-                onSendTikTokIdeaToReview={sendTikTokIdeaToReview}
+                error={contentIdeaError}
+                ideas={contentIdeas}
+                isGenerating={isGeneratingContentIdeas}
+                onGenerateIdeas={generateContentPlan}
+                onSendIdeaToReview={sendContentIdeaToReview}
               />
             )}
             {activeTab === "products" && (

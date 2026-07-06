@@ -58,7 +58,7 @@ export const interviewSteps: InterviewStepConfig[] = [
     label: "Rules",
     title: "What should the assistant avoid?",
     prompt:
-      "Set the boundaries now so replies, posts, and short-form ideas stay true to the product.",
+      "Set the boundaries now so replies, posts, and content ideas stay true to the product.",
     fields: ["avoid"],
   },
   {

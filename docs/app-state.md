@@ -19,7 +19,7 @@ The app is moving toward a phase-based workflow:
 3. The user can manually edit the brief at any time.
 4. The app builds a research plan across relevant channels.
 5. Research produces demand signals and opportunities.
-6. The AI drafts helpful replies, posts, or short-form ideas.
+6. The AI drafts helpful replies or content ideas.
 7. The user reviews and approves before anything public happens.
 
 The important product promise is:
@@ -41,7 +41,7 @@ The app currently has these main areas:
 - Repurpose
 - Connections
 
-Product workspaces keep separate state for each product, including the brief, source material, chat messages, research targets, opportunities, drafts, and TikTok ideas.
+Product workspaces keep separate state for each product, including the brief, source material, chat messages, research targets, opportunities, drafts, and content ideas.
 
 ## Phase-Based Chat
 
@@ -123,7 +123,7 @@ Source material can include:
 - support tickets
 - ad examples
 
-The purpose of source material is to generate draft content: replies, hooks, posts, proof points, short-form ideas, and repurposed content. A research target is different: it is a place or query the app should investigate for demand signals.
+The purpose of source material is to help the founder keep useful context nearby while creating draft content: replies, hooks, posts, proof points, and repurposed content. In the MVP, the AI can suggest what kind of image, video, link, or attachment would fit a content idea, but it does not evaluate resources or pick the actual asset. A research target is different: it is a place or query the app should investigate for demand signals.
 
 ## Research Layer
 
@@ -189,7 +189,7 @@ The old Opportunities view has been reframed as Research because opportunities s
 
 The review queue is a trust layer.
 
-The AI can prepare replies, posts, and short-form ideas, but the founder should stay in control before anything goes public. This is a core product principle.
+The AI can prepare replies, posts, and content ideas, but the founder should stay in control before anything goes public. This is a core product principle.
 
 Current drafts support:
 
@@ -208,7 +208,7 @@ Draft statuses are:
 
 ## Repurpose
 
-Repurpose is a later-stage workflow. It can turn approved material or product context into short-form ideas, especially TikTok-style concepts.
+Repurpose is a later-stage workflow. In the MVP, it creates content ideas with editable draft copy and attachment guidance. OpenAI can say what kind of image, video, link, or media would fit the draft, while the user chooses and attaches the actual asset.
 
 This is useful, but it is secondary to the main discovery-first workflow. The app should first become good at understanding the product and finding demand.
 

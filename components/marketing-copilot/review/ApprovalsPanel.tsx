@@ -3,10 +3,16 @@ import type { Draft } from "@/lib/types";
 type ApprovalsPanelProps = {
   drafts: Draft[];
   onApprove: (id: number) => void;
+  onDraftChange: (id: number, updates: Pick<Draft, "title" | "body">) => void;
   onSchedule: (id: number) => void;
 };
 
-export function ApprovalsPanel({ drafts, onApprove, onSchedule }: ApprovalsPanelProps) {
+export function ApprovalsPanel({
+  drafts,
+  onApprove,
+  onDraftChange,
+  onSchedule,
+}: ApprovalsPanelProps) {
   return (
     <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -32,8 +38,33 @@ export function ApprovalsPanel({ drafts, onApprove, onSchedule }: ApprovalsPanel
                       </span>
                       <span className="text-xs text-slate-500">{draft.format}</span>
                     </div>
-                    <h3 className="mt-3 text-lg font-semibold text-slate-950">{draft.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{draft.body}</p>
+                    <label className="mt-3 grid gap-2 text-sm font-semibold text-slate-700">
+                      Draft title
+                      <input
+                        value={draft.title}
+                        onChange={(event) =>
+                          onDraftChange(draft.id, {
+                            title: event.target.value,
+                            body: draft.body,
+                          })
+                        }
+                        className="min-h-10 rounded-md border border-slate-300 bg-white px-3 text-base font-normal text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      />
+                    </label>
+                    <label className="mt-3 grid gap-2 text-sm font-semibold text-slate-700">
+                      Draft body
+                      <textarea
+                        value={draft.body}
+                        onChange={(event) =>
+                          onDraftChange(draft.id, {
+                            title: draft.title,
+                            body: event.target.value,
+                          })
+                        }
+                        rows={8}
+                        className="resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-normal leading-6 text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                      />
+                    </label>
                     <p className="mt-3 text-sm font-medium text-slate-600">{draft.time}</p>
                   </div>
                   <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex sm:min-w-36">
@@ -67,7 +98,8 @@ function DraftSupportPanel() {
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <h2 className="text-lg font-semibold text-slate-950">Next up</h2>
       <p className="mt-2 text-sm leading-6 text-slate-600">
-        Approved replies can later become follow-up posts, short-form clips, or comment responses.
+        Edit the copy here first. Images, videos, links, and other media can be added manually
+        after the draft is ready.
       </p>
     </div>
   );

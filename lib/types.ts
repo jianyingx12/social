@@ -4,7 +4,9 @@ export type Platform =
   | "Indie Hackers"
   | "YouTube"
   | "TikTok"
-  | "Instagram";
+  | "Instagram"
+  | "LinkedIn"
+  | "X / Twitter";
 
 export type AccountPlatform = "Reddit" | "TikTok" | "Instagram";
 
@@ -96,7 +98,7 @@ export type ProductWorkspace = {
   chatMessages: ChatMessage[];
   drafts: Draft[];
   opportunities: Opportunity[];
-  tiktokIdeas: TikTokIdea[];
+  contentIdeas: ContentIdea[];
 };
 
 export type ProductBriefUpdates = Partial<
@@ -146,20 +148,20 @@ export type Account = {
 export type Draft = {
   id: number;
   platform: Platform;
-  format: "Reply" | "Post" | "Short-form idea";
+  format: "Reply" | "Post" | "Image post" | "Carousel" | "Content idea";
   status: "Draft" | "Approved" | "Scheduled";
   title: string;
   body: string;
   time: string;
 };
 
-export type TikTokIdea = {
+export type ContentIdea = {
   id: number;
-  sourceTitle: string;
-  hook: string;
-  script: string;
-  caption: string;
-  callToAction: string;
+  platform: Platform;
+  format: Draft["format"];
+  title: string;
+  body: string;
+  attachmentSuggestion: string;
   angle: string;
 };
 
