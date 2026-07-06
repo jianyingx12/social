@@ -100,11 +100,11 @@ export function useMarketingCopilot() {
   }
 
   function createProduct() {
-    const nextProduct = createBlankProduct(`Product ${products.length + 1}`);
+    const nextProduct = createBlankProduct("Untitled");
 
     setProducts((current) => [nextProduct, ...current]);
     setActiveProductId(nextProduct.id);
-    setActiveTab("brief");
+    setActiveTab("chat");
   }
 
   function deleteProduct(id: string) {
@@ -410,10 +410,6 @@ function getActiveProduct(products: ProductWorkspace[], activeProductId: string 
 }
 
 function getProductContext(product: ProductWorkspace) {
-  const resources = product.resources
-    .map((resource) => `${resource.type}: ${resource.title}\n${resource.body}`)
-    .join("\n\n");
-
   return [
     `Product type: ${product.productType}`,
     product.oneLine ? `One-line description: ${product.oneLine}` : "",
@@ -428,7 +424,6 @@ function getProductContext(product: ProductWorkspace) {
     product.keywords ? `Keywords: ${product.keywords}` : "",
     product.avoid ? `Avoid/rules: ${product.avoid}` : "",
     product.brief ? `Extra notes: ${product.brief}` : "",
-    resources ? `Resources:\n${resources}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");

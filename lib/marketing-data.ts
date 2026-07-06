@@ -21,31 +21,7 @@ export const initialAccounts: Account[] = [
   },
 ];
 
-export const initialProductWorkspaces: ProductWorkspace[] = [
-  {
-    id: "product-1",
-    name: "Untitled product",
-    productType: "Other",
-    productUrl: "",
-    oneLine: "",
-    audience: "",
-    problem: "",
-    outcome: "",
-    differentiator: "",
-    proof: "",
-    voice: "",
-    channels: "",
-    keywords: "",
-    avoid: "",
-    brief: "",
-    resources: [],
-    researchTargets: [],
-    chatMessages: [],
-    drafts: [],
-    opportunities: [],
-    tiktokIdeas: [],
-  },
-];
+export const initialProductWorkspaces: ProductWorkspace[] = [];
 
 export const productTabs: { id: Tab; label: string }[] = [
   { id: "chat", label: "Chat" },

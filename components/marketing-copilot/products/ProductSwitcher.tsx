@@ -43,7 +43,7 @@ export function ProductSwitcher({
           onClick={onCreateProduct}
           className="flex min-h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
         >
-          New
+          Add
         </button>
       </div>
       <div className="mt-3 grid gap-2">
@@ -85,7 +85,7 @@ export function ProductSwitcher({
                       isActive ? "text-slate-200" : "text-slate-500"
                     }`}
                   >
-                    {product.productType} - {product.resources.length} resource
+                    {product.productType} - {product.resources.length} draft source
                     {product.resources.length === 1 ? "" : "s"}
                   </span>
                 </div>

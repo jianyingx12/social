@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ProductBriefUpdates, ProductWorkspace } from "@/lib/types";
 import { BriefStepFields } from "./BriefStepFields";
 import { BriefStepNav } from "./BriefStepNav";
-import { interviewSteps, type InterviewStep } from "./config";
+import { interviewSteps } from "./config";
 import { getCompletionCount, isStepComplete } from "./progress";
 
 type BriefPanelProps = {
@@ -18,10 +18,13 @@ export function BriefPanel({
   onProductChange,
   onGenerate,
 }: BriefPanelProps) {
-  const [activeStep, setActiveStep] = useState<InterviewStep>("basics");
+  const [activeStep, setActiveStep] = useState(interviewSteps[0].id);
   const completionCount = getCompletionCount(product);
-  const stepIndex = interviewSteps.findIndex((step) => step.id === activeStep);
-  const step = interviewSteps[stepIndex] ?? interviewSteps[0];
+  const stepIndex = Math.max(
+    interviewSteps.findIndex((step) => step.id === activeStep),
+    0,
+  );
+  const step = interviewSteps[stepIndex];
   const completedStepCount = interviewSteps.filter((item) =>
     isStepComplete(product, item.fields),
   ).length;
@@ -84,11 +87,7 @@ export function BriefPanel({
             </div>
 
             <div className="mt-4 grid gap-3">
-              <BriefStepFields
-                product={product}
-                step={step.id}
-                onProductChange={onProductChange}
-              />
+              <BriefStepFields product={product} step={step.id} onProductChange={onProductChange} />
             </div>
 
             <div className="mt-5 flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -104,21 +103,21 @@ export function BriefPanel({
                 >
                   Back
                 </button>
-                {stepIndex < interviewSteps.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={goToNextStep}
-                    className="flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
-                  >
-                    Next
-                  </button>
-                ) : (
+                {stepIndex === interviewSteps.length - 1 ? (
                   <button
                     type="button"
                     onClick={onGenerate}
                     className="flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
                   >
                     Find opportunities
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={goToNextStep}
+                    className="flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+                  >
+                    Next
                   </button>
                 )}
               </div>

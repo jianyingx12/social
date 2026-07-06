@@ -48,8 +48,6 @@ export function ChatPanel({
   const displayedMessages = messages.length > 0 ? messages : starterMessages;
   const currentPhase = getCurrentIntakePhase(product);
   const completedPhaseCount = intakePhases.filter((phase) => isPhaseComplete(product, phase)).length;
-  const hasContext =
-    Boolean(product.brief.trim()) || Boolean(product.audience.trim()) || product.resources.length > 0;
 
   async function sendMessage(content = input) {
     const trimmedContent = content.trim();
@@ -229,23 +227,6 @@ export function ChatPanel({
               );
             })}
           </div>
-          {!hasContext && (
-            <button
-              onClick={onOpenBrief}
-              className="mt-4 flex min-h-10 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
-            >
-              Add product context
-            </button>
-          )}
-        </div>
-
-        <div className="rounded-lg border border-slate-800 bg-slate-950 p-4 text-white shadow-sm">
-          <h2 className="text-lg font-semibold">Workspace state</h2>
-          <div className="mt-4 grid gap-2 text-sm leading-6 text-slate-200">
-            <ContextRow label="Resources" value={String(product.resources.length)} dark />
-            <ContextRow label="Opportunities" value={String(opportunities.length)} dark />
-            <ContextRow label="Drafts" value={String(drafts.length)} dark />
-          </div>
         </div>
       </aside>
     </section>
@@ -273,27 +254,4 @@ export function ChatPanel({
       onProductChange(emptyFieldUpdates);
     }
   }
-}
-
-function ContextRow({
-  label,
-  value,
-  dark = false,
-}: {
-  label: string;
-  value: string;
-  dark?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-between gap-3 rounded-md px-3 py-2 ${
-        dark ? "bg-slate-800" : "border border-slate-200 bg-slate-50"
-      }`}
-    >
-      <span className={dark ? "text-slate-300" : "text-slate-600"}>{label}</span>
-      <span className={`min-w-0 truncate font-semibold ${dark ? "text-white" : "text-slate-950"}`}>
-        {value}
-      </span>
-    </div>
-  );
 }

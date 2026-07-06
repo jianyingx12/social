@@ -33,20 +33,37 @@ export function ProductDirectoryPanel({
         <div>
           <h2 className="text-2xl font-semibold text-slate-950">Products</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Each product keeps its own brief, audience, resources, and generated work.
+            Each product keeps its own brief, audience, source material, and generated work.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onCreateProduct}
-          className="flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700"
-        >
-          New product
-        </button>
+        {products.length > 0 && (
+          <button
+            type="button"
+            onClick={onCreateProduct}
+            className="flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700"
+          >
+            Add product
+          </button>
+        )}
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {products.map((product) => {
+      {products.length === 0 ? (
+        <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+          <h3 className="text-lg font-semibold text-slate-950">No products yet</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+            Add a product to start building its brief, research plan, source material, and drafts.
+          </p>
+          <button
+            type="button"
+            onClick={onCreateProduct}
+            className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700"
+          >
+            Add product
+          </button>
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {products.map((product) => {
           const isActive = product.id === activeProductId;
 
           return (
@@ -79,7 +96,8 @@ export function ProductDirectoryPanel({
                     }}
                   />
                   <span className="mt-1 block text-sm text-slate-600">
-                    {product.resources.length} resource{product.resources.length === 1 ? "" : "s"}
+                    {product.resources.length} draft source
+                    {product.resources.length === 1 ? "" : "s"}
                   </span>
                 </div>
                 <ProductActionsMenu
@@ -110,8 +128,9 @@ export function ProductDirectoryPanel({
               </button>
             </article>
           );
-        })}
-      </div>
+          })}
+        </div>
+      )}
     </section>
   );
 }

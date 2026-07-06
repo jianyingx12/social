@@ -35,13 +35,13 @@ The app currently has these main areas:
 - Product workspaces
 - Phase-based chat intake
 - Product brief
-- Resources
+- Source material
 - Research
 - Review queue
 - Repurpose
 - Connections
 
-Product workspaces keep separate state for each product, including the brief, resources, chat messages, research targets, opportunities, drafts, and TikTok ideas.
+Product workspaces keep separate state for each product, including the brief, source material, chat messages, research targets, opportunities, drafts, and TikTok ideas.
 
 ## Phase-Based Chat
 
@@ -97,31 +97,33 @@ The brief captures:
 - avoid/rules
 - extra notes
 
-The brief remains editable because the user should always be able to correct the AI.
+The brief remains editable because the user should always be able to correct the AI. If the user has extra product context, it should be summarized into the brief fields or extra notes instead of living in a separate hidden resource layer.
 
-## Resources
+## Source Material
 
-Resources are supporting context for the AI.
+The old Resources tab is now treated as source material for drafts. This is not where the canonical product context lives. Product context belongs in the brief.
 
-They now have their own feature folder:
+Source material lives in:
 
 ```txt
 components/marketing-copilot/resources/
 ```
 
-Resources can include:
+Source material can include:
 
-- documents
 - websites
 - images
 - videos
 - social posts
-- customer notes
-- competitors
-- communities
-- FAQs
+- customer quotes
+- testimonials
+- case studies
+- demo notes
+- launch notes
+- support tickets
+- ad examples
 
-Resources are broader than research targets. A resource is source material the AI should understand. A research target is a place or query the app should investigate for demand signals.
+The purpose of source material is to generate draft content: replies, hooks, posts, proof points, short-form ideas, and repurposed content. A research target is different: it is a place or query the app should investigate for demand signals.
 
 ## Research Layer
 
@@ -258,7 +260,7 @@ The frontend merges returned brief updates only into empty fields, so manual use
 - Product workspace list and active product state
 - Product rename flow
 - Product brief form
-- Resources section in its own folder
+- Source material section in its own folder
 - Phase-based chat intake UI
 - Organic advertising-focused intake prompts
 - OpenAI chat API route

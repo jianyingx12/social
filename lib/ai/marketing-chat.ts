@@ -161,7 +161,7 @@ function buildContext(
   accounts: Account[],
   intakePhase?: IntakePhaseId,
 ) {
-  const resources = product.resources
+  const sourceMaterial = product.resources
     .map((resource) => `- ${resource.type}: ${resource.title}\n  ${resource.body}`)
     .join("\n");
   const researchTargetSummary = product.researchTargets
@@ -196,7 +196,7 @@ function buildContext(
     `Keywords/customer language: ${product.keywords || "Not provided"}`,
     `Avoid/rules: ${product.avoid || "Not provided"}`,
     `Extra brief notes: ${product.brief || "Not provided"}`,
-    `Resources:\n${resources || "- None yet"}`,
+    `Draft source material:\n${sourceMaterial || "- None yet"}`,
     `Research targets:\n${researchTargetSummary || "- None yet"}`,
     `Current opportunities:\n${opportunitySummary || "- None yet"}`,
     `Review queue:\n${draftSummary || "- Empty"}`,

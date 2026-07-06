@@ -34,6 +34,13 @@ export type ProductResourceType =
   | "Video"
   | "Social post"
   | "Customer note"
+  | "Customer quote"
+  | "Testimonial"
+  | "Case study"
+  | "Demo"
+  | "Launch note"
+  | "Support ticket"
+  | "Ad example"
   | "Competitor"
   | "Community"
   | "FAQ";

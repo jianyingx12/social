@@ -213,7 +213,7 @@ function ResearchRules({ product }: { product: ProductWorkspace }) {
           "Look for complaints, comparison posts, help requests, and workaround discussions.",
           "Capture exact customer language before drafting.",
           "Mention the product only when the conversation makes it genuinely relevant.",
-          "Treat user-provided resources and customer data as valid research sources.",
+          "Treat customer data and selected source material as valid research inputs when relevant.",
         ].map((rule) => (
           <div key={rule} className="rounded-md border border-slate-800 bg-slate-900 p-3">
             {rule}
