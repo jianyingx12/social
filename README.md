@@ -71,6 +71,12 @@ NEON_AUTH_COOKIE_SECRET=
 OAUTH_TOKEN_ENCRYPTION_KEY=
 ```
 
+For deployed environments, set `NEON_AUTH_BASE_URL` to the Neon Auth base URL for the
+project, not the app URL or `localhost`. Also add every app origin that should sign
+in, such as `https://your-app.vercel.app` and any custom production domain, to Neon
+Auth's trusted domains. If this is missing, deployed sign-in can fail with
+`Invalid origin` even when localhost works.
+
 Run the app:
 
 ```bash

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initialAccounts } from "@/lib/marketing-data";
 import { getContentIdeaBriefReadiness } from "@/lib/product-brief-readiness";
 import type {
@@ -34,6 +34,8 @@ type UseMarketingCopilotOptions = {
   initialProductWorkspaces?: ProductWorkspace[];
 };
 
+export type WorkspaceSaveStatus = "disabled" | "idle" | "saving" | "saved" | "error";
+
 export function useMarketingCopilot({
   enablePersistence = false,
   initialProductWorkspaces = [],
@@ -50,6 +52,11 @@ export function useMarketingCopilot({
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(initialConnectionNotice);
+  const [workspaceSaveStatus, setWorkspaceSaveStatus] = useState<WorkspaceSaveStatus>(
+    enablePersistence ? "saved" : "disabled",
+  );
+  const hasMountedPersistence = useRef(false);
+  const saveVersion = useRef(0);
   const { contentIdeaError, generateContentIdeas, isGeneratingContentIdeas } =
     useContentIdeaGeneration();
   const { generateResearch, isGeneratingResearch, researchError } = useResearchGeneration();
@@ -84,14 +91,38 @@ export function useMarketingCopilot({
       return;
     }
 
+    if (!hasMountedPersistence.current) {
+      hasMountedPersistence.current = true;
+      return;
+    }
+
+    const currentSaveVersion = saveVersion.current + 1;
+    saveVersion.current = currentSaveVersion;
+
     const timeoutId = window.setTimeout(() => {
+      setWorkspaceSaveStatus("saving");
+
       fetch("/api/workspaces", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ products }),
-      }).catch(() => undefined);
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Could not save workspace.");
+          }
+
+          if (saveVersion.current === currentSaveVersion) {
+            setWorkspaceSaveStatus("saved");
+          }
+        })
+        .catch(() => {
+          if (saveVersion.current === currentSaveVersion) {
+            setWorkspaceSaveStatus("error");
+          }
+        });
     }, 600);
 
     return () => window.clearTimeout(timeoutId);
@@ -355,6 +386,7 @@ export function useMarketingCopilot({
     products,
     researchError,
     researchTargets,
+    workspaceSaveStatus,
     contentIdeaError,
     contentIdeas,
     contentIdeaReadiness,

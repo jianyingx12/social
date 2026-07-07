@@ -44,6 +44,7 @@ export function MarketingCopilotApp({
     contentIdeas,
     contentIdeaReadiness,
     researchError,
+    workspaceSaveStatus,
     isGeneratingContentIdeas,
     isGeneratingResearch,
     addResearchTarget,
@@ -77,7 +78,11 @@ export function MarketingCopilotApp({
   return (
     <main className="min-h-screen bg-[#f5f7f9] text-slate-950">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
-        <AppHeader activeProduct={activeProduct} currentUser={currentUser} />
+        <AppHeader
+          activeProduct={activeProduct}
+          currentUser={currentUser}
+          workspaceSaveStatus={workspaceSaveStatus}
+        />
 
         <section className="grid gap-4 lg:grid-cols-[248px_1fr]">
           <Sidebar

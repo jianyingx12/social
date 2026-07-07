@@ -49,6 +49,8 @@ The MVP stores each workspace as JSON. That JSON includes the product brief, sou
 
 This is intentional for now. The product workflow is still changing, and JSON storage lets the app evolve without creating a migration for every UI shape change.
 
+Signed-in users load product workspaces on the server when the app opens. Client-side workspace changes autosave back to `/api/workspaces`, including product brief edits, chat messages, research targets, discovered opportunities, drafts, resources, and content ideas.
+
 Later, stable high-value objects can move into normalized tables. Likely candidates:
 
 - research targets
@@ -198,7 +200,6 @@ The storage foundation exists, but these pieces are still not done:
 
 - Reddit refresh token rotation
 - automatic retry for all provider API calls after expired access tokens
-- live research result storage
 - normalized tables for stable workflow objects
 - platform posting/scheduling records
 - audit log for sensitive connection actions
