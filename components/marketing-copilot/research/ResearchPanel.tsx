@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import type { Opportunity, ProductWorkspace, ResearchChannel, ResearchTarget } from "@/lib/types";
+import { AiLoadingState, AiSpinner } from "../shared/AiLoadingState";
 
 const researchChannels: ResearchChannel[] = [
   "Search",
   "Reddit",
   "Hacker News",
+  "Stack Overflow",
+  "GitHub",
   "Indie Hackers",
   "YouTube",
   "TikTok",
@@ -93,7 +96,11 @@ export function ResearchPanel({
         />
       </div>
 
-      <OpportunityList opportunities={opportunities} onDraft={onDraft} />
+      <OpportunityList
+        isGeneratingResearch={isGeneratingResearch}
+        opportunities={opportunities}
+        onDraft={onDraft}
+      />
     </section>
   );
 }
@@ -127,8 +134,8 @@ function ResearchAgentPanel({
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">Find demand signals</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            OrganicReach searches public discussions from your product brief, then turns the best
-            matches into opportunities you can review.
+            OrganicReach searches public discussions and issue threads from your product brief,
+            then turns the best matches into opportunities you can review.
           </p>
         </div>
 
@@ -138,8 +145,17 @@ function ResearchAgentPanel({
           disabled={isGeneratingResearch}
           className="flex min-h-11 w-full items-center justify-center rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isGeneratingResearch ? "Researching Hacker News..." : "Run research"}
+          {isGeneratingResearch ? (
+            <span className="inline-flex items-center gap-2">
+              <AiSpinner />
+              Researching live sources...
+            </span>
+          ) : (
+            "Run research"
+          )}
         </button>
+
+        {isGeneratingResearch && <ResearchLoadingState />}
 
         {researchError && (
           <p className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm font-medium leading-6 text-rose-700">
@@ -178,9 +194,16 @@ function ResearchAgentPanel({
         </div>
 
         <div className="rounded-lg border border-slate-200 p-4">
-          <h3 className="text-sm font-semibold text-slate-950">Enabled source</h3>
-          <div className="mt-3 rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white">
-            Hacker News
+          <h3 className="text-sm font-semibold text-slate-950">Enabled sources</h3>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["Hacker News", "Stack Overflow", "GitHub"].map((source) => (
+              <span
+                key={source}
+                className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white"
+              >
+                {source}
+              </span>
+            ))}
           </div>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             More sources can plug into this same research pipeline later.
@@ -188,6 +211,15 @@ function ResearchAgentPanel({
         </div>
       </div>
     </div>
+  );
+}
+
+function ResearchLoadingState() {
+  return (
+    <AiLoadingState
+      title="AI is researching public discussions"
+      description="Searching Hacker News, Stack Overflow, and GitHub issues, then turning the strongest demand signals into opportunity cards."
+    />
   );
 }
 
@@ -325,9 +357,11 @@ function SourceHintsPanel({
 }
 
 function OpportunityList({
+  isGeneratingResearch,
   opportunities,
   onDraft,
 }: {
+  isGeneratingResearch: boolean;
   opportunities: Opportunity[];
   onDraft: (id: number) => void;
 }) {
@@ -340,9 +374,11 @@ function OpportunityList({
         </span>
       </div>
       <div className="mt-4 grid gap-3">
-        {opportunities.length === 0 ? (
+        {isGeneratingResearch && opportunities.length === 0 ? (
+          <OpportunityLoadingCards />
+        ) : opportunities.length === 0 ? (
           <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-            No opportunities yet. Run Hacker News research to have the agent look for public
+            No opportunities yet. Run live research to have the agent look for public
             demand signals from the product brief.
           </p>
         ) : (
@@ -384,5 +420,29 @@ function OpportunityList({
         )}
       </div>
     </div>
+  );
+}
+
+function OpportunityLoadingCards() {
+  return (
+    <>
+      {[0, 1, 2].map((item) => (
+        <article
+          key={item}
+          className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+          aria-hidden="true"
+        >
+          <div className="flex flex-wrap gap-2">
+            <div className="h-6 w-24 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-6 w-16 animate-pulse rounded-md bg-teal-100" />
+            <div className="h-6 w-20 animate-pulse rounded-md bg-amber-100" />
+          </div>
+          <div className="mt-4 h-4 w-3/4 animate-pulse rounded bg-slate-200" />
+          <div className="mt-3 h-3 w-full animate-pulse rounded bg-slate-200" />
+          <div className="mt-2 h-3 w-5/6 animate-pulse rounded bg-slate-200" />
+          <div className="mt-4 h-9 w-full animate-pulse rounded-md bg-slate-200" />
+        </article>
+      ))}
+    </>
   );
 }

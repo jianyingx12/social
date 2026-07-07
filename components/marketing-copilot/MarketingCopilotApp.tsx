@@ -56,7 +56,7 @@ export function MarketingCopilotApp({
     generatePlan,
     generateContentPlan,
     generateResearchTargets,
-    runHackerNewsResearch,
+    runLiveResearch,
     createProduct,
     deleteProduct,
     deselectProduct,
@@ -123,7 +123,7 @@ export function MarketingCopilotApp({
                 onAddTarget={addResearchTarget}
                 onDraft={draftOpportunity}
                 onGenerateTargets={generateResearchTargets}
-                onRunResearch={runHackerNewsResearch}
+                onRunResearch={runLiveResearch}
                 onOpenBrief={() => setActiveTab("brief")}
                 onRemoveTarget={removeResearchTarget}
               />

@@ -1,6 +1,8 @@
 export type Platform =
   | "Reddit"
   | "Hacker News"
+  | "Stack Overflow"
+  | "GitHub"
   | "Indie Hackers"
   | "YouTube"
   | "TikTok"
@@ -57,6 +59,8 @@ export type ProductResource = {
 export type ResearchChannel =
   | "Reddit"
   | "Hacker News"
+  | "Stack Overflow"
+  | "GitHub"
   | "Indie Hackers"
   | "YouTube"
   | "TikTok"
@@ -153,6 +157,9 @@ export type Draft = {
   title: string;
   body: string;
   time: string;
+  approvedAt?: string;
+  scheduledAt?: string;
+  scheduledFor?: string;
 };
 
 export type ContentIdea = {

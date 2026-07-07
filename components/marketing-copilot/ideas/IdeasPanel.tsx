@@ -1,4 +1,5 @@
 import type { Account, ContentIdea, Draft } from "@/lib/types";
+import { AiLoadingState, AiSpinner } from "../shared/AiLoadingState";
 
 type ContentIdeaReadiness = {
   isReady: boolean;
@@ -65,7 +66,14 @@ export function IdeasPanel({
             disabled={isGenerating || !readiness.isReady}
             className="flex min-h-10 w-full items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
           >
-            {isGenerating ? "Generating..." : "Generate content ideas"}
+            {isGenerating ? (
+              <span className="inline-flex items-center gap-2">
+                <AiSpinner />
+                Generating ideas...
+              </span>
+            ) : (
+              "Generate content ideas"
+            )}
           </button>
           {!readiness.isReady && (
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -85,7 +93,18 @@ export function IdeasPanel({
           )}
         </div>
 
-        {readiness.isReady && ideas.length === 0 && (
+        {isGenerating && (
+          <div className="mt-5">
+            <AiLoadingState
+              title="AI is drafting content ideas"
+              description="Using the product brief to create post options, draft copy, and suggested attachment direction."
+            />
+          </div>
+        )}
+
+        {isGenerating && ideas.length === 0 && <IdeaLoadingCards />}
+
+        {readiness.isReady && !isGenerating && ideas.length === 0 && (
           <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm leading-6 text-slate-600">
               No ideas generated yet. Generate a set of content ideas, then send the best one to
@@ -154,6 +173,30 @@ export function IdeasPanel({
         </div>
       </div>
     </section>
+  );
+}
+
+function IdeaLoadingCards() {
+  return (
+    <div className="mt-5 grid gap-3">
+      {[0, 1, 2].map((item) => (
+        <article
+          key={item}
+          className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+          aria-hidden="true"
+        >
+          <div className="flex flex-wrap gap-2">
+            <div className="h-6 w-20 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-6 w-24 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-6 w-24 animate-pulse rounded-md bg-emerald-100" />
+          </div>
+          <div className="mt-4 h-5 w-2/3 animate-pulse rounded bg-slate-200" />
+          <div className="mt-3 h-3 w-full animate-pulse rounded bg-slate-200" />
+          <div className="mt-2 h-3 w-5/6 animate-pulse rounded bg-slate-200" />
+          <div className="mt-4 h-3 w-1/2 animate-pulse rounded bg-slate-200" />
+        </article>
+      ))}
+    </div>
   );
 }
 

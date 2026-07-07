@@ -201,7 +201,7 @@ The storage foundation exists, but these pieces are still not done:
 - Reddit refresh token rotation
 - automatic retry for all provider API calls after expired access tokens
 - normalized tables for stable workflow objects
-- platform posting/scheduling records
+- external platform posting records
 - audit log for sensitive connection actions
 - automated tests for route-level auth and storage behavior
 

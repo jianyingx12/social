@@ -156,11 +156,45 @@ export function useMarketingCopilot({
   }
 
   function approveDraft(id: number) {
-    updateDraftStatus(id, "Approved");
+    const approvedAt = new Date().toISOString();
+
+    touchActiveProduct((product) => ({
+      ...product,
+      drafts: product.drafts.map((draft) =>
+        draft.id === id
+          ? {
+              ...draft,
+              status: "Approved",
+              approvedAt,
+              scheduledAt: undefined,
+              time: "Approved. Choose a schedule time.",
+            }
+          : draft,
+      ),
+    }));
   }
 
-  function scheduleDraft(id: number) {
-    updateDraftStatus(id, "Scheduled");
+  function scheduleDraft(id: number, scheduledFor: string) {
+    const trimmedScheduledFor = scheduledFor.trim();
+
+    if (!trimmedScheduledFor) {
+      return;
+    }
+
+    touchActiveProduct((product) => ({
+      ...product,
+      drafts: product.drafts.map((draft) =>
+        draft.id === id
+          ? {
+              ...draft,
+              status: "Scheduled",
+              scheduledAt: new Date().toISOString(),
+              scheduledFor: trimmedScheduledFor,
+              time: `Scheduled for ${formatScheduleTime(trimmedScheduledFor)}`,
+            }
+          : draft,
+      ),
+    }));
   }
 
   function createProduct() {
@@ -273,7 +307,7 @@ export function useMarketingCopilot({
     }));
   }
 
-  async function runHackerNewsResearch() {
+  async function runLiveResearch() {
     if (!activeProduct) {
       return;
     }
@@ -324,12 +358,32 @@ export function useMarketingCopilot({
     setActiveTab("review");
   }
 
-  function updateDraft(id: number, updates: Pick<Draft, "title" | "body">) {
+  function updateDraft(id: number, updates: Partial<Pick<Draft, "title" | "body" | "scheduledFor">>) {
     touchActiveProduct((product) => ({
       ...product,
-      drafts: product.drafts.map((draft) =>
-        draft.id === id ? { ...draft, ...updates } : draft,
-      ),
+      drafts: product.drafts.map((draft) => {
+        if (draft.id !== id) {
+          return draft;
+        }
+
+        const copyChanged =
+          (typeof updates.title === "string" && updates.title !== draft.title) ||
+          (typeof updates.body === "string" && updates.body !== draft.body);
+
+        if (!copyChanged) {
+          return { ...draft, ...updates };
+        }
+
+        return {
+          ...draft,
+          ...updates,
+          status: "Draft",
+          approvedAt: undefined,
+          scheduledAt: undefined,
+          scheduledFor: undefined,
+          time: "Edited. Needs review.",
+        };
+      }),
     }));
   }
 
@@ -368,13 +422,6 @@ export function useMarketingCopilot({
     setActiveTab("review");
   }
 
-  function updateDraftStatus(id: number, status: Draft["status"]) {
-    touchActiveProduct((product) => ({
-      ...product,
-      drafts: product.drafts.map((draft) => (draft.id === id ? { ...draft, status } : draft)),
-    }));
-  }
-
   return {
     accounts,
     activeTab,
@@ -404,7 +451,7 @@ export function useMarketingCopilot({
     generatePlan,
     generateContentPlan,
     generateResearchTargets,
-    runHackerNewsResearch,
+    runLiveResearch,
     removeProductResource,
     removeResearchTarget,
     renameProduct,
@@ -442,6 +489,19 @@ export function useMarketingCopilot({
       return [updatedProduct, ...otherProducts];
     });
   }
+}
+
+function formatScheduleTime(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function mergeOpportunities(current: Opportunity[], next: Opportunity[]) {

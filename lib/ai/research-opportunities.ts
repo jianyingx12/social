@@ -22,7 +22,39 @@ type HackerNewsResponse = {
   hits?: HackerNewsHit[];
 };
 
+type StackExchangeItem = {
+  title?: string;
+  link?: string;
+  body?: string;
+  owner?: {
+    display_name?: string;
+  };
+  score?: number;
+  answer_count?: number;
+  creation_date?: number;
+};
+
+type StackExchangeResponse = {
+  items?: StackExchangeItem[];
+};
+
+type GitHubIssueItem = {
+  html_url?: string;
+  title?: string;
+  body?: string;
+  comments?: number;
+  created_at?: string;
+  user?: {
+    login?: string;
+  };
+};
+
+type GitHubIssueResponse = {
+  items?: GitHubIssueItem[];
+};
+
 type ResearchSource = {
+  platform: Platform;
   title: string;
   url: string;
   snippet: string;
@@ -52,8 +84,8 @@ type OpenAIResponse = {
 
 const defaultModel = "gpt-5.5";
 const maxQueries = 4;
-const maxSources = 16;
-const platforms: Platform[] = ["Hacker News"];
+const maxSources = 24;
+const platforms: Platform[] = ["Hacker News", "Stack Overflow", "GitHub"];
 
 export function validateResearchOpportunitiesRequest(
   body: unknown,
@@ -82,10 +114,10 @@ export function validateResearchOpportunitiesRequest(
 export async function createResearchOpportunities({
   product,
 }: ResearchOpportunitiesRequest): Promise<Opportunity[]> {
-  const sources = await searchHackerNews(buildResearchQueries(product));
+  const sources = await searchResearchSources(buildResearchQueries(product));
 
   if (sources.length === 0) {
-    throw new Error("Hacker News did not return any usable research sources.");
+    throw new Error("The enabled research sources did not return any usable results.");
   }
 
   const opportunities = await analyzeSourcesWithOpenAI(product, sources);
@@ -95,6 +127,30 @@ export async function createResearchOpportunities({
   }
 
   return opportunities;
+}
+
+async function searchResearchSources(queries: string[]) {
+  const results = await Promise.all([
+    searchHackerNews(queries),
+    searchStackOverflow(queries),
+    searchGitHubIssues(queries),
+  ]);
+
+  const seenUrls = new Set<string>();
+
+  return results
+    .flat()
+    .filter((source): source is ResearchSource => Boolean(source))
+    .filter((source) => {
+      if (seenUrls.has(source.url)) {
+        return false;
+      }
+
+      seenUrls.add(source.url);
+
+      return true;
+    })
+    .slice(0, maxSources);
 }
 
 function hasEnoughResearchContext(product: ProductWorkspace) {
@@ -149,21 +205,10 @@ async function searchHackerNews(queries: string[]) {
     }),
   );
 
-  const seenUrls = new Set<string>();
-
   return results
     .flat()
     .filter((source): source is ResearchSource => Boolean(source))
-    .filter((source) => {
-      if (seenUrls.has(source.url)) {
-        return false;
-      }
-
-      seenUrls.add(source.url);
-
-      return true;
-    })
-    .slice(0, maxSources);
+    .slice(0, 8);
 }
 
 function normalizeHackerNewsHit(hit: HackerNewsHit): ResearchSource | null {
@@ -177,6 +222,7 @@ function normalizeHackerNewsHit(hit: HackerNewsHit): ResearchSource | null {
   }
 
   return {
+    platform: "Hacker News",
     title,
     url,
     snippet,
@@ -184,6 +230,116 @@ function normalizeHackerNewsHit(hit: HackerNewsHit): ResearchSource | null {
     points: typeof hit.points === "number" ? hit.points : 0,
     comments: typeof hit.num_comments === "number" ? hit.num_comments : 0,
     date: sanitizeText(hit.created_at, 40),
+  };
+}
+
+async function searchStackOverflow(queries: string[]) {
+  const results = await Promise.all(
+    queries.map(async (query) => {
+      const params = new URLSearchParams({
+        order: "desc",
+        sort: "relevance",
+        site: "stackoverflow",
+        pagesize: "5",
+        filter: "withbody",
+        q: query,
+      });
+      const response = await fetch(`https://api.stackexchange.com/2.3/search/advanced?${params}`, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = (await response.json()) as StackExchangeResponse;
+
+      return (data.items ?? []).map(normalizeStackExchangeItem).filter(Boolean);
+    }),
+  );
+
+  return results
+    .flat()
+    .filter((source): source is ResearchSource => Boolean(source))
+    .slice(0, 8);
+}
+
+function normalizeStackExchangeItem(item: StackExchangeItem): ResearchSource | null {
+  const title = sanitizeText(item.title, 180);
+  const url = sanitizeText(item.link, 500);
+  const snippet = sanitizeText(item.body || title, 800);
+
+  if (!title || !url || !snippet) {
+    return null;
+  }
+
+  return {
+    platform: "Stack Overflow",
+    title,
+    url,
+    snippet,
+    author: sanitizeText(item.owner?.display_name, 80),
+    points: typeof item.score === "number" ? item.score : 0,
+    comments: typeof item.answer_count === "number" ? item.answer_count : 0,
+    date:
+      typeof item.creation_date === "number"
+        ? new Date(item.creation_date * 1000).toISOString()
+        : "",
+  };
+}
+
+async function searchGitHubIssues(queries: string[]) {
+  const results = await Promise.all(
+    queries.map(async (query) => {
+      const params = new URLSearchParams({
+        q: `${query} in:title,body is:issue`,
+        per_page: "5",
+        sort: "comments",
+        order: "desc",
+      });
+      const response = await fetch(`https://api.github.com/search/issues?${params}`, {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "User-Agent": "OrganicReach-MVP",
+        },
+      });
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = (await response.json()) as GitHubIssueResponse;
+
+      return (data.items ?? []).map(normalizeGitHubIssue).filter(Boolean);
+    }),
+  );
+
+  return results
+    .flat()
+    .filter((source): source is ResearchSource => Boolean(source))
+    .slice(0, 8);
+}
+
+function normalizeGitHubIssue(item: GitHubIssueItem): ResearchSource | null {
+  const title = sanitizeText(item.title, 180);
+  const url = sanitizeText(item.html_url, 500);
+  const snippet = sanitizeText(item.body || title, 800);
+
+  if (!title || !url || !snippet) {
+    return null;
+  }
+
+  return {
+    platform: "GitHub",
+    title,
+    url,
+    snippet,
+    author: sanitizeText(item.user?.login, 80),
+    points: 0,
+    comments: typeof item.comments === "number" ? item.comments : 0,
+    date: sanitizeText(item.created_at, 40),
   };
 }
 
@@ -223,12 +379,12 @@ async function analyzeSourcesWithOpenAI(
 function buildInstructions() {
   return [
     "You are OrganicReach, an organic marketing research agent.",
-    "Analyze Hacker News search results against the product brief.",
+    "Analyze public discussion and issue search results against the product brief.",
     "Only create opportunities from sources that show plausible demand, pain, comparison intent, confusion, objections, or discussion the founder can join helpfully.",
     "Do not invent source facts, metrics, comments, or claims.",
     "The suggested reply must be useful and non-spammy. It should answer or contribute first, and mention the product only if genuinely relevant.",
     "Prefer specific customer language and practical angles over generic marketing copy.",
-    "Return only valid JSON in this exact shape: {\"opportunities\":[{\"platform\":\"Hacker News\",\"source\":\"string\",\"title\":\"string\",\"intent\":\"string\",\"score\":0,\"risk\":\"Low|Medium|High\",\"angle\":\"string\",\"suggestedReply\":\"string\"}]}",
+    "Return only valid JSON in this exact shape: {\"opportunities\":[{\"platform\":\"Hacker News|Stack Overflow|GitHub\",\"source\":\"string\",\"title\":\"string\",\"intent\":\"string\",\"score\":0,\"risk\":\"Low|Medium|High\",\"angle\":\"string\",\"suggestedReply\":\"string\"}]}",
     "Return up to 5 opportunities.",
   ].join("\n");
 }
@@ -242,7 +398,7 @@ function buildInput(product: ProductWorkspace, sources: ResearchSource[]) {
     {
       role: "user",
       content:
-        "Find the strongest organic opportunities in these Hacker News results and draft useful replies for review.",
+        "Find the strongest organic opportunities in these public research results and draft useful replies for review.",
     },
   ];
 }
@@ -253,6 +409,7 @@ function buildContext(product: ProductWorkspace, sources: ResearchSource[]) {
       (source, index) =>
         [
           `Source ${index + 1}: ${source.title}`,
+          `Platform: ${source.platform}`,
           `URL: ${source.url}`,
           `Author: ${source.author || "Unknown"}`,
           `Points: ${source.points}`,

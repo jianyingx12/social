@@ -138,6 +138,8 @@ The app now has a Research surface backed by `ResearchTarget` state. Research ta
 - Search
 - Reddit
 - Hacker News
+- Stack Overflow
+- GitHub
 - Indie Hackers
 - YouTube
 - TikTok
@@ -158,7 +160,7 @@ Each research target captures:
 
 The current implementation can manually add research targets and seed a starter research plan from the product profile. It does not yet fetch live data from these sources.
 
-The first automatic research source is Hacker News. The Research view can run a Hacker News research pass from the current product brief. The backend searches public Hacker News results, sends those sources to OpenAI, and stores the resulting opportunity cards in the product workspace.
+The first automatic research sources are Hacker News, Stack Overflow, and GitHub issues. The Research view can run a live research pass from the current product brief. The backend searches public results from those sources, sends the normalized source set to OpenAI, and stores the resulting opportunity cards in the product workspace.
 
 The purpose of research is to find:
 
@@ -203,12 +205,16 @@ Current drafts support:
 - title
 - body
 - time/state
+- approval timestamp
+- scheduled time
 
 Draft statuses are:
 
 - Draft
 - Approved
 - Scheduled
+
+The MVP supports manual approval and scheduling metadata. A draft must be approved before scheduling is unlocked. Editing the title or body after approval moves the item back to Draft so changed copy can be reviewed again. Scheduling saves the plan in the product workspace, but it does not publish to external platforms yet.
 
 ## Ideas
 
@@ -274,8 +280,9 @@ The frontend merges returned brief updates only into empty fields, so manual use
 - Research target domain model
 - Research panel
 - Seeded research target generation
-- Automatic Hacker News research pass
+- Automatic live research across Hacker News, Stack Overflow, and GitHub issues
 - Draft review queue
+- Manual approval and scheduling flow for drafts
 - Ideas prototype
 - Reddit and TikTok OAuth scaffolding
 - Neon-backed product workspace persistence
@@ -286,10 +293,10 @@ The frontend merges returned brief updates only into empty fields, so manual use
 
 - Normalized relational tables for the full product workflow
 - Reddit refresh token rotation and expiry recovery
-- Additional live research sources beyond Hacker News
+- Additional live research sources beyond Hacker News, Stack Overflow, and GitHub
 - Real opportunity discovery from external sources
 - AI summarization of fetched research
-- Posting or scheduling to external platforms
+- Posting to external platforms
 - Production-grade auth and user accounts
 - Billing/usage limits
 - Automated tests for the main workflow

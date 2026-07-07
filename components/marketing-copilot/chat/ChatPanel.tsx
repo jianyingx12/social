@@ -9,6 +9,7 @@ import type {
   ProductBriefUpdates,
   ProductWorkspace,
 } from "@/lib/types";
+import { AiSpinner } from "../shared/AiLoadingState";
 import { getCurrentIntakePhase, intakePhases, isPhaseComplete } from "./intake-phases";
 
 type ChatPanelProps = {
@@ -170,8 +171,17 @@ export function ChatPanel({
               </article>
             ))}
             {isSending && (
-              <div className="w-fit rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                Thinking...
+              <div
+                aria-live="polite"
+                className="w-fit max-w-[88%] rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-900"
+              >
+                <span className="inline-flex items-center gap-2 font-semibold">
+                  <AiSpinner />
+                  AI is responding
+                </span>
+                <p className="mt-1 text-teal-800">
+                  Reading your answer and updating the product brief where it is confident.
+                </p>
               </div>
             )}
           </div>
@@ -213,7 +223,7 @@ export function ChatPanel({
               disabled={isSending || !input.trim()}
               className="flex min-h-11 w-full items-center justify-center rounded-md bg-slate-950 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-28"
             >
-              Send
+              {isSending ? <AiSpinner /> : "Send"}
             </button>
           </div>
         </div>
