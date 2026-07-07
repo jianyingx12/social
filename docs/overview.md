@@ -17,6 +17,8 @@ The most important early workflow is:
 
 Reddit is the clearest first channel because it is built around public discussions, niche communities, and question-driven threads. That makes it possible for OrganicReach to act like a marketing operator instead of a posting bot. The product can help founders find useful moments to join conversations without manually searching every community themselves.
 
+The first implemented automatic research source is Hacker News because it is public, free to query, and useful for startup, software, AI, developer, and founder-oriented products. The same research pipeline should later support Reddit, search APIs, YouTube, TikTok, LinkedIn, X / Twitter, review sites, and other source-specific fetchers.
+
 Instagram, TikTok, LinkedIn, X / Twitter, and similar broadcast channels still have a role, but they are secondary. They are better for repurposing and learning than for discovering demand. For the MVP, OrganicReach can generate content ideas with editable draft copy and guidance on what kind of image, video, link, or other media to attach. The founder still chooses the actual asset and approves the final post.
 
 The MVP should focus on four product areas:

@@ -7,6 +7,7 @@ import type {
   AccountPlatform,
   ChatMessage,
   Draft,
+  Opportunity,
   ProductBriefUpdates,
   ProductResource,
   ResearchTarget,
@@ -26,6 +27,7 @@ import {
 } from "../../connections/connection-status";
 import { createDraftFromContentIdea } from "../ideas/content-idea";
 import { useContentIdeaGeneration } from "../ideas/useContentIdeaGeneration";
+import { useResearchGeneration } from "../research/useResearchGeneration";
 
 type UseMarketingCopilotOptions = {
   enablePersistence?: boolean;
@@ -50,6 +52,7 @@ export function useMarketingCopilot({
     useState<ConnectionNotice | null>(initialConnectionNotice);
   const { contentIdeaError, generateContentIdeas, isGeneratingContentIdeas } =
     useContentIdeaGeneration();
+  const { generateResearch, isGeneratingResearch, researchError } = useResearchGeneration();
 
   const activeProduct = getActiveProduct(products, activeProductId);
   const drafts = activeProduct?.drafts ?? [];
@@ -239,6 +242,24 @@ export function useMarketingCopilot({
     }));
   }
 
+  async function runHackerNewsResearch() {
+    if (!activeProduct) {
+      return;
+    }
+
+    const productId = activeProduct.id;
+
+    await generateResearch({
+      product: activeProduct,
+      onOpportunities: (nextOpportunities) => {
+        touchProduct(productId, (product) => ({
+          ...product,
+          opportunities: mergeOpportunities(product.opportunities, nextOpportunities),
+        }));
+      },
+    });
+  }
+
   function updateChatMessages(messages: ChatMessage[]) {
     touchActiveProduct((product) => ({ ...product, chatMessages: messages }));
   }
@@ -332,11 +353,13 @@ export function useMarketingCopilot({
     drafts,
     opportunities,
     products,
+    researchError,
     researchTargets,
     contentIdeaError,
     contentIdeas,
     contentIdeaReadiness,
     isGeneratingContentIdeas,
+    isGeneratingResearch,
     addProductResource,
     addResearchTarget,
     approveDraft,
@@ -349,6 +372,7 @@ export function useMarketingCopilot({
     generatePlan,
     generateContentPlan,
     generateResearchTargets,
+    runHackerNewsResearch,
     removeProductResource,
     removeResearchTarget,
     renameProduct,
@@ -386,6 +410,13 @@ export function useMarketingCopilot({
       return [updatedProduct, ...otherProducts];
     });
   }
+}
+
+function mergeOpportunities(current: Opportunity[], next: Opportunity[]) {
+  const currentSources = new Set(current.map((opportunity) => opportunity.source));
+  const uniqueNext = next.filter((opportunity) => !currentSources.has(opportunity.source));
+
+  return [...uniqueNext, ...current];
 }
 
 function createBlankProduct(name: string): ProductWorkspace {

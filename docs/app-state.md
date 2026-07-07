@@ -158,6 +158,8 @@ Each research target captures:
 
 The current implementation can manually add research targets and seed a starter research plan from the product profile. It does not yet fetch live data from these sources.
 
+The first automatic research source is Hacker News. The Research view can run a Hacker News research pass from the current product brief. The backend searches public Hacker News results, sends those sources to OpenAI, and stores the resulting opportunity cards in the product workspace.
+
 The purpose of research is to find:
 
 - complaints
@@ -272,6 +274,7 @@ The frontend merges returned brief updates only into empty fields, so manual use
 - Research target domain model
 - Research panel
 - Seeded research target generation
+- Automatic Hacker News research pass
 - Draft review queue
 - Ideas prototype
 - Reddit and TikTok OAuth scaffolding
@@ -283,7 +286,7 @@ The frontend merges returned brief updates only into empty fields, so manual use
 
 - Normalized relational tables for the full product workflow
 - Reddit refresh token rotation and expiry recovery
-- Live research fetching
+- Additional live research sources beyond Hacker News
 - Real opportunity discovery from external sources
 - AI summarization of fetched research
 - Posting or scheduling to external platforms

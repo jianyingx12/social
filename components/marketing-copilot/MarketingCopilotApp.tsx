@@ -43,7 +43,9 @@ export function MarketingCopilotApp({
     contentIdeaError,
     contentIdeas,
     contentIdeaReadiness,
+    researchError,
     isGeneratingContentIdeas,
+    isGeneratingResearch,
     addResearchTarget,
     addProductResource,
     approveDraft,
@@ -53,6 +55,7 @@ export function MarketingCopilotApp({
     generatePlan,
     generateContentPlan,
     generateResearchTargets,
+    runHackerNewsResearch,
     createProduct,
     deleteProduct,
     deselectProduct,
@@ -109,10 +112,13 @@ export function MarketingCopilotApp({
               <ResearchPanel
                 opportunities={opportunities}
                 product={activeProduct}
+                researchError={researchError}
                 researchTargets={researchTargets}
+                isGeneratingResearch={isGeneratingResearch}
                 onAddTarget={addResearchTarget}
                 onDraft={draftOpportunity}
                 onGenerateTargets={generateResearchTargets}
+                onRunResearch={runHackerNewsResearch}
                 onOpenBrief={() => setActiveTab("brief")}
                 onRemoveTarget={removeResearchTarget}
               />

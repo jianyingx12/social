@@ -10,7 +10,7 @@ This is not meant to be a fully automatic posting bot or another social schedule
 
 - Shows a basic dashboard for account connections
 - Has a product brief screen for describing a product, audience, and problem
-- Shows a first opportunities view for relevant conversations
+- Runs a first automatic Hacker News research pass for relevant conversations
 - Drafts replies from selected opportunities into a review queue
 - Includes an Ideas area for content ideas with suggested attachments
 - Starts a real Reddit OAuth connection flow
@@ -39,7 +39,7 @@ The app is not intended to mass-post, vote, scrape, spam, or work around subredd
 ## Not Done Yet
 
 - Real Reddit posting
-- Full live research fetching
+- Additional live research sources beyond Hacker News
 - Instagram OAuth
 - Reddit refresh token rotation
 
