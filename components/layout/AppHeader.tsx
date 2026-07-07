@@ -1,10 +1,12 @@
 import type { ProductWorkspace } from "@/lib/types";
+import type { AppUser } from "@/lib/auth/session-user";
 
 type AppHeaderProps = {
   activeProduct: ProductWorkspace | null;
+  currentUser: AppUser | null;
 };
 
-export function AppHeader({ activeProduct }: AppHeaderProps) {
+export function AppHeader({ activeProduct, currentUser }: AppHeaderProps) {
   return (
     <header className="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm lg:px-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -19,12 +21,30 @@ export function AppHeader({ activeProduct }: AppHeaderProps) {
             Find real demand, shape useful replies, and keep every public action in review.
           </p>
         </div>
-        {activeProduct && (
-          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-            <span className="text-slate-500">Active product</span>
-            <p className="font-semibold text-slate-950">{activeProduct.name}</p>
-          </div>
-        )}
+        <div className="flex flex-col gap-2 sm:items-end">
+          {currentUser && (
+            <div className="flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm sm:items-end">
+              <span className="text-slate-500">Signed in as</span>
+              <p className="font-semibold text-slate-950">
+                {currentUser.name || currentUser.email || "Account"}
+              </p>
+              <form action="/api/auth/logout" method="post">
+                <button
+                  type="submit"
+                  className="text-sm font-semibold text-teal-700 transition hover:text-teal-800"
+                >
+                  Log out
+                </button>
+              </form>
+            </div>
+          )}
+          {activeProduct && (
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm sm:text-right">
+              <span className="text-slate-500">Active product</span>
+              <p className="font-semibold text-slate-950">{activeProduct.name}</p>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

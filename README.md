@@ -12,11 +12,14 @@ This is not meant to be a fully automatic posting bot or another social schedule
 - Has a product brief screen for describing a product, audience, and problem
 - Shows a first opportunities view for relevant conversations
 - Drafts replies from selected opportunities into a review queue
-- Includes a repurpose area for later TikTok, Instagram, Shorts, and LinkedIn workflows
+- Includes an Ideas area for content ideas with suggested attachments
 - Starts a real Reddit OAuth connection flow
-- Reads the connected Reddit username after OAuth
+- Stores encrypted Reddit OAuth tokens in Neon Postgres
+- Reads the connected Reddit username after OAuth from server-side storage
 - Starts a TikTok Login Kit OAuth flow
-- Reads the connected TikTok display name after OAuth
+- Stores encrypted TikTok OAuth tokens in Neon Postgres
+- Reads the connected TikTok display name after OAuth from server-side storage
+- Refreshes TikTok access tokens server-side when needed
 
 ## Why Reddit Access Is Needed
 
@@ -35,11 +38,10 @@ The app is not intended to mass-post, vote, scrape, spam, or work around subredd
 
 ## Not Done Yet
 
-- Real database
-- Encrypted token storage
 - Real Reddit posting
-- Real AI API calls
+- Full live research fetching
 - Instagram OAuth
+- Reddit refresh token rotation
 
 ## Local Setup
 
@@ -62,6 +64,11 @@ TIKTOK_CLIENT_SECRET=
 TIKTOK_REDIRECT_URI=https://your-domain.example/api/auth/callback/tiktok
 TIKTOK_VERIFICATION_FILENAME=
 TIKTOK_VERIFICATION_CONTENT=
+
+DATABASE_URL=
+NEON_AUTH_BASE_URL=
+NEON_AUTH_COOKIE_SECRET=
+OAUTH_TOKEN_ENCRYPTION_KEY=
 ```
 
 Run the app:
@@ -109,6 +116,6 @@ https://your-domain.example/tiktok-example.txt
 
 ## Notes
 
-This repo is still a prototype. The current Reddit and TikTok connections store only enough local state to show that the account connected. Production token storage needs to move into encrypted server-side storage.
+This repo is still a prototype. Reddit and TikTok OAuth tokens are stored encrypted in Neon Postgres. Keep `OAUTH_TOKEN_ENCRYPTION_KEY` private and stable; changing it makes existing stored tokens unreadable.
 
 More product context is in [docs/overview.md](docs/overview.md). Current product state, implemented pieces, and near-term direction are in [docs/app-state.md](docs/app-state.md).

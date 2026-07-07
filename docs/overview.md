@@ -32,4 +32,4 @@ The first real connection milestones are OAuth identity connections for Reddit a
 
 The guiding principle is trust. OrganicReach can find, draft, rank, recommend, and prepare, but the founder stays in control before anything goes live.
 
-For the current implementation state and planned workflow, see [app-state.md](app-state.md).
+For the current implementation state and planned workflow, see [app-state.md](app-state.md). For database, auth, and token storage details, see [storage.md](storage.md).

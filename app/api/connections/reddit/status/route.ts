@@ -1,13 +1,14 @@
-import { NextRequest } from "next/server";
-import {
-  decodeRedditConnection,
-  redditConnectionCookie,
-} from "@/lib/auth/reddit";
+import { getCurrentUserStorageKey } from "@/lib/auth/current-user";
+import { loadConnectedAccountStatus } from "@/lib/db/connected-accounts";
 
-export async function GET(request: NextRequest) {
-  const connection = decodeRedditConnection(
-    request.cookies.get(redditConnectionCookie)?.value,
-  );
+export async function GET() {
+  const userId = await getCurrentUserStorageKey();
+
+  if (!userId) {
+    return Response.json({ connected: false });
+  }
+
+  const connection = await loadConnectedAccountStatus(userId, "Reddit");
 
   if (!connection) {
     return Response.json({ connected: false });
@@ -15,8 +16,8 @@ export async function GET(request: NextRequest) {
 
   return Response.json({
     connected: true,
-    username: connection.username,
-    scope: connection.scope,
+    username: connection.username ?? connection.displayName,
+    scope: connection.scopes.join(" "),
     expiresAt: connection.expiresAt,
   });
 }

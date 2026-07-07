@@ -1,4 +1,5 @@
 import type { ContentIdea, Draft, Platform, ProductWorkspace } from "@/lib/types";
+import { getContentIdeaBriefReadiness } from "@/lib/product-brief-readiness";
 
 type ContentIdeasRequest = {
   product: ProductWorkspace;
@@ -47,17 +48,12 @@ export function validateContentIdeasRequest(body: unknown): ContentIdeasRequest 
     throw new Error("Content ideas request is missing product context.");
   }
 
-  const hasProductContext = [
-    request.product.name,
-    request.product.oneLine,
-    request.product.audience,
-    request.product.problem,
-    request.product.outcome,
-    request.product.brief,
-  ].some((value) => value.trim());
+  const readiness = getContentIdeaBriefReadiness(request.product);
 
-  if (!hasProductContext) {
-    throw new Error("Add product context before creating content ideas.");
+  if (!readiness.isReady) {
+    throw new Error(
+      `Complete the product brief before creating content ideas. Missing: ${readiness.missingFields.join(", ")}.`,
+    );
   }
 
   return {

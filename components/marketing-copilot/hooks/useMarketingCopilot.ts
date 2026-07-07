@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  initialAccounts,
-  initialProductWorkspaces,
-} from "@/lib/marketing-data";
+import { initialAccounts } from "@/lib/marketing-data";
+import { getContentIdeaBriefReadiness } from "@/lib/product-brief-readiness";
 import type {
   AccountPlatform,
   ChatMessage,
@@ -26,10 +24,18 @@ import {
   markAccountDisconnected,
   mergeConnectedAccounts,
 } from "../../connections/connection-status";
-import { createDraftFromContentIdea } from "../repurpose/content-idea";
-import { useContentIdeaGeneration } from "../repurpose/useContentIdeaGeneration";
+import { createDraftFromContentIdea } from "../ideas/content-idea";
+import { useContentIdeaGeneration } from "../ideas/useContentIdeaGeneration";
 
-export function useMarketingCopilot() {
+type UseMarketingCopilotOptions = {
+  enablePersistence?: boolean;
+  initialProductWorkspaces?: ProductWorkspace[];
+};
+
+export function useMarketingCopilot({
+  enablePersistence = false,
+  initialProductWorkspaces = [],
+}: UseMarketingCopilotOptions = {}) {
   const [initialTikTokResult] = useState(getInitialTikTokResult);
   const initialConnectionNotice = initialTikTokResult
     ? getTikTokConnectionNotice(initialTikTokResult)
@@ -50,6 +56,9 @@ export function useMarketingCopilot() {
   const opportunities = activeProduct?.opportunities ?? [];
   const researchTargets = activeProduct?.researchTargets ?? [];
   const contentIdeas = activeProduct?.contentIdeas ?? [];
+  const contentIdeaReadiness = activeProduct
+    ? getContentIdeaBriefReadiness(activeProduct)
+    : { isReady: false, missingFields: [] };
 
   useEffect(() => {
     if (initialTikTokResult) {
@@ -66,6 +75,24 @@ export function useMarketingCopilot() {
       })
       .catch(() => undefined);
   }, [initialTikTokResult]);
+
+  useEffect(() => {
+    if (!enablePersistence) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      fetch("/api/workspaces", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ products }),
+      }).catch(() => undefined);
+    }, 600);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [enablePersistence, products]);
 
   function connectAccount(platform: AccountPlatform) {
     if (platform === "Reddit") {
@@ -308,6 +335,7 @@ export function useMarketingCopilot() {
     researchTargets,
     contentIdeaError,
     contentIdeas,
+    contentIdeaReadiness,
     isGeneratingContentIdeas,
     addProductResource,
     addResearchTarget,

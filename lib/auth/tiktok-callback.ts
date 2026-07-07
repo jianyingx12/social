@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  encodeTikTokConnection,
   exchangeTikTokCode,
   fetchTikTokMe,
   TikTokOAuthError,
   tiktokConnectionCookie,
   tiktokStateCookie,
 } from "./tiktok";
+import { getCurrentUserStorageKey } from "./current-user";
+import { saveConnectedAccount } from "@/lib/db/connected-accounts";
 
 export async function handleTikTokCallback(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -26,30 +27,45 @@ export async function handleTikTokCallback(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  const userId = await getCurrentUserStorageKey();
+
+  if (!userId) {
+    redirectUrl.searchParams.set("tiktok", "error");
+    redirectUrl.searchParams.set("reason", "auth-required");
+    const response = NextResponse.redirect(redirectUrl);
+    response.cookies.delete(tiktokStateCookie);
+    return response;
+  }
+
   try {
     const token = await exchangeTikTokCode(code);
     const account = await fetchTikTokMe(token.access_token!);
     const expiresAt = Date.now() + (token.expires_in ?? 86400) * 1000;
+    const refreshExpiresAt = token.refresh_expires_in
+      ? Date.now() + token.refresh_expires_in * 1000
+      : null;
+
+    await saveConnectedAccount({
+      userId,
+      platform: "TikTok",
+      providerAccountId: account.open_id!,
+      displayName: account.display_name ?? "TikTok account",
+      scopes: splitScopes(token.scope),
+      accessToken: token.access_token!,
+      refreshToken: token.refresh_token ?? null,
+      tokenType: token.token_type ?? null,
+      expiresAt,
+      refreshExpiresAt,
+      metadata: {
+        avatarUrl: account.avatar_url ?? null,
+      },
+    });
+
     redirectUrl.searchParams.set("tiktok", "connected");
     const response = NextResponse.redirect(redirectUrl);
 
     response.cookies.delete(tiktokStateCookie);
-    response.cookies.set(
-      tiktokConnectionCookie,
-      encodeTikTokConnection({
-        displayName: account.display_name ?? "TikTok account",
-        openId: account.open_id!,
-        scope: token.scope ?? "",
-        expiresAt,
-      }),
-      {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 30,
-        path: "/",
-      },
-    );
+    response.cookies.delete(tiktokConnectionCookie);
 
     return response;
   } catch (error) {
@@ -73,4 +89,8 @@ function getTikTokErrorReason(error: unknown) {
   }
 
   return "unknown";
+}
+
+function splitScopes(scope: string | undefined) {
+  return scope?.split(/[\s,]+/).filter(Boolean) ?? [];
 }

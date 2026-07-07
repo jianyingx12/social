@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { ChatPanel } from "./chat/ChatPanel";
 import { AccountPanel } from "../connections/AccountPanel";
 import { ConnectionNoticeBanner } from "../connections/ConnectionNoticeBanner";
@@ -9,11 +11,25 @@ import { Sidebar } from "../layout/Sidebar";
 import { BriefPanel } from "./product-brief/BriefPanel";
 import { ProductDirectoryPanel } from "./products/ProductDirectoryPanel";
 import { ResearchPanel } from "./research/ResearchPanel";
-import { RepurposePanel } from "./repurpose/RepurposePanel";
+import { IdeasPanel } from "./ideas/IdeasPanel";
 import { ResourcesPanel } from "./resources/ResourcesPanel";
 import { ApprovalsPanel } from "./review/ApprovalsPanel";
+import type { AppUser } from "@/lib/auth/session-user";
+import type { ProductWorkspace } from "@/lib/types";
 
-export function MarketingCopilotApp() {
+type MarketingCopilotAppProps = {
+  currentUser: AppUser | null;
+  initialProductWorkspaces: ProductWorkspace[];
+};
+
+export function MarketingCopilotApp({
+  currentUser,
+  initialProductWorkspaces,
+}: MarketingCopilotAppProps) {
+  const [briefAssistRequest, setBriefAssistRequest] = useState<{
+    id: number;
+    missingFields: string[];
+  } | null>(null);
   const {
     accounts,
     activeTab,
@@ -26,6 +42,7 @@ export function MarketingCopilotApp() {
     researchTargets,
     contentIdeaError,
     contentIdeas,
+    contentIdeaReadiness,
     isGeneratingContentIdeas,
     addResearchTarget,
     addProductResource,
@@ -49,12 +66,15 @@ export function MarketingCopilotApp() {
     updateChatMessages,
     updateDraft,
     updateActiveProduct,
-  } = useMarketingCopilot();
+  } = useMarketingCopilot({
+    enablePersistence: Boolean(currentUser),
+    initialProductWorkspaces,
+  });
 
   return (
     <main className="min-h-screen bg-[#f5f7f9] text-slate-950">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
-        <AppHeader activeProduct={activeProduct} />
+        <AppHeader activeProduct={activeProduct} currentUser={currentUser} />
 
         <section className="grid gap-4 lg:grid-cols-[248px_1fr]">
           <Sidebar
@@ -75,6 +95,7 @@ export function MarketingCopilotApp() {
             {activeTab === "chat" && activeProduct && (
               <ChatPanel
                 accounts={accounts}
+                briefAssistRequest={briefAssistRequest}
                 drafts={drafts}
                 messages={activeProduct.chatMessages}
                 opportunities={opportunities}
@@ -118,14 +139,23 @@ export function MarketingCopilotApp() {
                 onSchedule={scheduleDraft}
               />
             )}
-            {activeTab === "repurpose" && activeProduct && (
-              <RepurposePanel
+            {activeTab === "ideas" && activeProduct && (
+              <IdeasPanel
                 accounts={accounts}
                 drafts={drafts}
                 error={contentIdeaError}
                 ideas={contentIdeas}
                 isGenerating={isGeneratingContentIdeas}
+                readiness={contentIdeaReadiness}
                 onGenerateIdeas={generateContentPlan}
+                onOpenBrief={() => setActiveTab("brief")}
+                onOpenChat={() => {
+                  setBriefAssistRequest({
+                    id: Date.now(),
+                    missingFields: contentIdeaReadiness.missingFields,
+                  });
+                  setActiveTab("chat");
+                }}
                 onSendIdeaToReview={sendContentIdeaToReview}
               />
             )}

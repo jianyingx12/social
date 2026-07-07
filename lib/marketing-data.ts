@@ -10,13 +10,13 @@ export const initialAccounts: Account[] = [
   {
     name: "TikTok",
     status: "Not connected",
-    scopes: ["Basic profile", "Comment workflows later", "Repurpose later"],
+    scopes: ["Basic profile", "Comment workflows later", "Ideas later"],
     accent: "border-l-cyan-500",
   },
   {
     name: "Instagram",
     status: "Review scopes",
-    scopes: ["Comment workflows later", "Insights later", "Repurpose later"],
+    scopes: ["Comment workflows later", "Insights later", "Ideas later"],
     accent: "border-l-rose-500",
   },
 ];
@@ -25,11 +25,11 @@ export const initialProductWorkspaces: ProductWorkspace[] = [];
 
 export const productTabs: { id: Tab; label: string }[] = [
   { id: "chat", label: "Chat" },
-  { id: "opportunities", label: "Research" },
   { id: "brief", label: "Product brief" },
   { id: "resources", label: "Resources" },
+  { id: "opportunities", label: "Research" },
+  { id: "ideas", label: "Ideas" },
   { id: "review", label: "Review queue" },
-  { id: "repurpose", label: "Repurpose" },
 ];
 
 export const globalTabs: { id: Tab; label: string }[] = [

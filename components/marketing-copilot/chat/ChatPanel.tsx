@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   Account,
   ChatMessage,
@@ -13,6 +13,10 @@ import { getCurrentIntakePhase, intakePhases, isPhaseComplete } from "./intake-p
 
 type ChatPanelProps = {
   accounts: Account[];
+  briefAssistRequest?: {
+    id: number;
+    missingFields: string[];
+  } | null;
   drafts: Draft[];
   messages: ChatMessage[];
   opportunities: Opportunity[];
@@ -33,6 +37,7 @@ const starterMessages: ChatMessage[] = [
 
 export function ChatPanel({
   accounts,
+  briefAssistRequest,
   drafts,
   messages,
   opportunities,
@@ -44,10 +49,24 @@ export function ChatPanel({
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastBriefAssistRequestId = useRef<number | null>(null);
   const nextMessageId = useRef(2);
   const displayedMessages = messages.length > 0 ? messages : starterMessages;
   const currentPhase = getCurrentIntakePhase(product);
   const completedPhaseCount = intakePhases.filter((phase) => isPhaseComplete(product, phase)).length;
+
+  useEffect(() => {
+    if (!briefAssistRequest || briefAssistRequest.id === lastBriefAssistRequestId.current) {
+      return;
+    }
+
+    lastBriefAssistRequestId.current = briefAssistRequest.id;
+    const missingFields = briefAssistRequest.missingFields.join(", ") || "the missing fields";
+
+    setInput(
+      `Help me complete the product brief so I can generate content ideas. Missing fields: ${missingFields}.`,
+    );
+  }, [briefAssistRequest]);
 
   async function sendMessage(content = input) {
     const trimmedContent = content.trim();

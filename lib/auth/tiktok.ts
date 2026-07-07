@@ -37,7 +37,7 @@ type TikTokUserInfoResponse = {
 export class TikTokOAuthError extends Error {
   constructor(
     message: string,
-    readonly phase: "token-exchange" | "user-info",
+    readonly phase: "token-exchange" | "token-refresh" | "user-info",
     readonly code?: string,
   ) {
     super(message);
@@ -107,6 +107,37 @@ export async function exchangeTikTokCode(code: string) {
     throw new TikTokOAuthError(
       token.error_description ?? token.error ?? "TikTok token exchange failed",
       "token-exchange",
+      token.error,
+    );
+  }
+
+  return token;
+}
+
+export async function refreshTikTokAccessToken(refreshToken: string) {
+  const config = getTikTokConfig();
+  const body = new URLSearchParams({
+    client_key: config.clientKey ?? "",
+    client_secret: config.clientSecret ?? "",
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+  });
+
+  const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Cache-Control": "no-cache",
+    },
+    body,
+  });
+
+  const token = (await response.json()) as TikTokTokenResponse;
+
+  if (!response.ok || token.error || !token.access_token) {
+    throw new TikTokOAuthError(
+      token.error_description ?? token.error ?? "TikTok token refresh failed",
+      "token-refresh",
       token.error,
     );
   }

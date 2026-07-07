@@ -17,7 +17,7 @@ export type Tab =
   | "opportunities"
   | "review"
   | "connect"
-  | "repurpose"
+  | "ideas"
   | "products";
 
 export type ProductType =

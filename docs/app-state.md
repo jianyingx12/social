@@ -38,10 +38,12 @@ The app currently has these main areas:
 - Source material
 - Research
 - Review queue
-- Repurpose
+- Ideas
 - Connections
 
 Product workspaces keep separate state for each product, including the brief, source material, chat messages, research targets, opportunities, drafts, and content ideas.
+
+Signed-in users now load and save product workspaces through Neon Postgres. The MVP persistence model stores each workspace as JSON per user, which keeps the app flexible while the product shape is still moving.
 
 ## Phase-Based Chat
 
@@ -206,9 +208,11 @@ Draft statuses are:
 - Approved
 - Scheduled
 
-## Repurpose
+## Ideas
 
-Repurpose is a later-stage workflow. In the MVP, it creates content ideas with editable draft copy and attachment guidance. OpenAI can say what kind of image, video, link, or media would fit the draft, while the user chooses and attaches the actual asset.
+Ideas is a later-stage workflow. In the MVP, it creates content ideas with editable draft copy and attachment guidance. OpenAI can say what kind of image, video, link, or media would fit the draft, while the user chooses and attaches the actual asset.
+
+Content idea generation is gated until the product brief has enough minimum context: one-line description, target audience, problem or desire, and main outcome promised. Without those fields, the app should ask the user to complete the brief instead of generating generic ideas.
 
 This is useful, but it is secondary to the main discovery-first workflow. The app should first become good at understanding the product and finding demand.
 
@@ -222,11 +226,11 @@ The app has early connection infrastructure for:
 
 Reddit is important for the first research and opportunity discovery direction. TikTok is useful later for login, repurposing, analytics, and comment workflows.
 
+Signed-in users can connect Reddit and TikTok accounts. OAuth callbacks store encrypted access and refresh tokens in Neon Postgres, while connection status routes return only safe account metadata to the browser. TikTok access tokens refresh server-side when needed.
+
 Production connection work still needs:
 
-- persistent database storage
-- encrypted token storage
-- refresh token handling
+- Reddit refresh token handling
 - account-level permissions
 - safer posting flows
 
@@ -269,13 +273,16 @@ The frontend merges returned brief updates only into empty fields, so manual use
 - Research panel
 - Seeded research target generation
 - Draft review queue
-- Repurpose prototype
+- Ideas prototype
 - Reddit and TikTok OAuth scaffolding
+- Neon-backed product workspace persistence
+- Encrypted Reddit and TikTok OAuth token storage
+- TikTok refresh token handling
 
 ## What Is Not Done
 
-- Real database persistence
-- Encrypted token storage
+- Normalized relational tables for the full product workflow
+- Reddit refresh token rotation and expiry recovery
 - Live research fetching
 - Real opportunity discovery from external sources
 - AI summarization of fetched research
