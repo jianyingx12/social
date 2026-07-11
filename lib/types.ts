@@ -153,14 +153,27 @@ export type Draft = {
   id: number;
   platform: Platform;
   format: "Reply" | "Post" | "Image post" | "Carousel" | "Content idea";
-  status: "Draft" | "Approved" | "Scheduled";
+  status: "Draft" | "Approved" | "Scheduled" | "Posted";
   title: string;
   body: string;
   time: string;
   approvedAt?: string;
   scheduledAt?: string;
   scheduledFor?: string;
+  postedAt?: string;
+  postedUrl?: string;
+  outcome?: DraftOutcome;
+  outcomeNotes?: string;
 };
+
+export type DraftOutcome =
+  | "No response yet"
+  | "Got engagement"
+  | "Got reply"
+  | "Got lead"
+  | "Converted"
+  | "Bad fit"
+  | "Skipped";
 
 export type ContentIdea = {
   id: number;

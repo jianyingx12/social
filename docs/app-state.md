@@ -207,14 +207,19 @@ Current drafts support:
 - time/state
 - approval timestamp
 - scheduled time
+- posted timestamp
+- posted link
+- outcome
+- outcome notes
 
 Draft statuses are:
 
 - Draft
 - Approved
 - Scheduled
+- Posted
 
-The MVP supports manual approval and scheduling metadata. A draft must be approved before scheduling is unlocked. Editing the title or body after approval moves the item back to Draft so changed copy can be reviewed again. Scheduling saves the plan in the product workspace, but it does not publish to external platforms yet.
+The MVP supports manual approval, scheduling metadata, and post-result tracking. A draft must be approved before scheduling or marking it posted is unlocked. Editing the title or body after approval moves the item back to Draft so changed copy can be reviewed again. Scheduling saves the plan in the product workspace, but it does not publish to external platforms yet. After manually posting, the user can mark a draft as Posted, save the public link, and record the result.
 
 ## Ideas
 

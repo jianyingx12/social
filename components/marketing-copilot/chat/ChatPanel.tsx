@@ -54,7 +54,7 @@ export function ChatPanel({
   const nextMessageId = useRef(2);
   const displayedMessages = messages.length > 0 ? messages : starterMessages;
   const currentPhase = getCurrentIntakePhase(product);
-  const completedPhaseCount = intakePhases.filter((phase) => isPhaseComplete(product, phase)).length;
+  const currentPhaseIndex = intakePhases.findIndex((phase) => phase.id === currentPhase.id);
 
   useEffect(() => {
     if (!briefAssistRequest || briefAssistRequest.id === lastBriefAssistRequestId.current) {
@@ -132,19 +132,49 @@ export function ChatPanel({
   }
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[1fr_320px]">
+    <section>
       <div className="flex min-h-[640px] flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">
-                Phase {Math.min(completedPhaseCount + 1, intakePhases.length)}/
-                {intakePhases.length}
+                Phase {currentPhaseIndex + 1}/{intakePhases.length}
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">
                 {currentPhase.title}
               </h2>
               <p className="mt-1 text-sm leading-6 text-slate-600">{currentPhase.question}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {intakePhases.slice(0, -1).map((phase, index) => {
+                  const isCurrent = phase.id === currentPhase.id;
+                  const isComplete = isPhaseComplete(product, phase);
+
+                  return (
+                    <span
+                      key={phase.id}
+                      className={`inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs font-semibold ${
+                        isCurrent
+                          ? "bg-slate-950 text-white"
+                          : isComplete
+                            ? "bg-teal-100 text-teal-800"
+                            : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          isCurrent
+                            ? "bg-teal-300"
+                            : isComplete
+                              ? "bg-teal-600"
+                              : "bg-slate-300"
+                        }`}
+                      />
+                      {index + 1}. {phase.label}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
             <button
               type="button"
@@ -228,36 +258,6 @@ export function ChatPanel({
           </div>
         </div>
       </div>
-
-      <aside className="grid gap-4 lg:self-start">
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-950">Intake phases</h2>
-          <div className="mt-4 grid gap-2 text-sm">
-            {intakePhases.map((phase) => {
-              const isCurrent = phase.id === currentPhase.id;
-              const isComplete = isPhaseComplete(product, phase);
-
-              return (
-                <div
-                  key={phase.id}
-                  className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 ${
-                    isCurrent
-                      ? "border-slate-950 bg-slate-950 text-white"
-                      : "border-slate-200 bg-slate-50 text-slate-700"
-                  }`}
-                >
-                  <span className="font-medium">{phase.label}</span>
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      isCurrent ? "bg-teal-300" : isComplete ? "bg-teal-500" : "bg-slate-300"
-                    }`}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </aside>
     </section>
   );
 

@@ -29,7 +29,7 @@ export const productTabs: { id: Tab; label: string }[] = [
   { id: "resources", label: "Resources" },
   { id: "opportunities", label: "Research" },
   { id: "ideas", label: "Ideas" },
-  { id: "review", label: "Review queue" },
+  { id: "review", label: "Review + tracking" },
 ];
 
 export const globalTabs: { id: Tab; label: string }[] = [

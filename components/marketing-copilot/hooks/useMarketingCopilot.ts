@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { initialAccounts } from "@/lib/marketing-data";
 import { getContentIdeaBriefReadiness } from "@/lib/product-brief-readiness";
 import type {
   AccountPlatform,
   ChatMessage,
   Draft,
+  DraftOutcome,
   Opportunity,
   ProductBriefUpdates,
   ProductResource,
@@ -26,11 +28,17 @@ import {
   mergeConnectedAccounts,
 } from "../../connections/connection-status";
 import { createDraftFromContentIdea } from "../ideas/content-idea";
+import {
+  createWorkspacePath,
+  getInitialWorkspaceRouteState,
+} from "../navigation/workspace-route";
 import { useContentIdeaGeneration } from "../ideas/useContentIdeaGeneration";
 import { useResearchGeneration } from "../research/useResearchGeneration";
 
 type UseMarketingCopilotOptions = {
   enablePersistence?: boolean;
+  initialProductId?: string;
+  initialTab?: string;
   initialProductWorkspaces?: ProductWorkspace[];
 };
 
@@ -38,18 +46,28 @@ export type WorkspaceSaveStatus = "disabled" | "idle" | "saving" | "saved" | "er
 
 export function useMarketingCopilot({
   enablePersistence = false,
+  initialProductId,
+  initialTab,
   initialProductWorkspaces = [],
 }: UseMarketingCopilotOptions = {}) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [initialTikTokResult] = useState(getInitialTikTokResult);
   const initialConnectionNotice = initialTikTokResult
     ? getTikTokConnectionNotice(initialTikTokResult)
     : null;
-  const [activeTab, setActiveTab] = useState<Tab>(
-    initialConnectionNotice ? "connect" : "products",
-  );
+  const initialNavigationState = getInitialWorkspaceRouteState({
+    fallbackTab: initialConnectionNotice ? "connect" : "products",
+    productId: initialProductId,
+    products: initialProductWorkspaces,
+    tab: initialTab,
+  });
+  const [activeTab, setActiveTabState] = useState<Tab>(initialNavigationState.tab);
   const [accounts, setAccounts] = useState(initialAccounts);
   const [products, setProducts] = useState(initialProductWorkspaces);
-  const [activeProductId, setActiveProductId] = useState<string | null>(null);
+  const [activeProductId, setActiveProductId] = useState<string | null>(
+    initialNavigationState.productId,
+  );
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(initialConnectionNotice);
   const [workspaceSaveStatus, setWorkspaceSaveStatus] = useState<WorkspaceSaveStatus>(
@@ -69,6 +87,24 @@ export function useMarketingCopilot({
   const contentIdeaReadiness = activeProduct
     ? getContentIdeaBriefReadiness(activeProduct)
     : { isReady: false, missingFields: [] };
+
+  function setActiveTab(tab: Tab) {
+    const nextProductId = tab === "products" ? null : activeProductId;
+
+    setActiveProductId(nextProductId);
+    setActiveTabState(tab);
+    pushWorkspaceRoute({ productId: nextProductId, tab });
+  }
+
+  function pushWorkspaceRoute(state: { productId: string | null; tab: Tab }) {
+    const nextPath = createWorkspacePath(state);
+
+    if (nextPath === pathname) {
+      return;
+    }
+
+    router.push(nextPath, { scroll: false });
+  }
 
   useEffect(() => {
     if (initialTikTokResult) {
@@ -197,12 +233,54 @@ export function useMarketingCopilot({
     }));
   }
 
+  function markDraftPosted(id: number) {
+    const postedAt = new Date().toISOString();
+
+    touchActiveProduct((product) => ({
+      ...product,
+      drafts: product.drafts.map((draft) =>
+        draft.id === id
+          ? {
+              ...draft,
+              status: "Posted",
+              postedAt,
+              outcome: draft.outcome ?? "No response yet",
+              time: "Posted. Track the result when you know it.",
+            }
+          : draft,
+      ),
+    }));
+  }
+
+  function updateDraftOutcome(
+    id: number,
+    updates: Partial<Pick<Draft, "postedUrl" | "outcomeNotes">> & {
+      outcome?: DraftOutcome | "";
+    },
+  ) {
+    touchActiveProduct((product) => ({
+      ...product,
+      drafts: product.drafts.map((draft) => {
+        if (draft.id !== id) {
+          return draft;
+        }
+
+        return {
+          ...draft,
+          ...updates,
+          outcome: updates.outcome === "" ? undefined : updates.outcome,
+        };
+      }),
+    }));
+  }
+
   function createProduct() {
     const nextProduct = createBlankProduct("Untitled");
 
     setProducts((current) => [nextProduct, ...current]);
     setActiveProductId(nextProduct.id);
-    setActiveTab("chat");
+    setActiveTabState("chat");
+    pushWorkspaceRoute({ productId: nextProduct.id, tab: "chat" });
   }
 
   function deleteProduct(id: string) {
@@ -218,18 +296,21 @@ export function useMarketingCopilot({
 
     if (activeProductId === id) {
       setActiveProductId(null);
-      setActiveTab("products");
+      setActiveTabState("products");
+      pushWorkspaceRoute({ productId: null, tab: "products" });
     }
   }
 
   function selectProduct(id: string) {
     setActiveProductId(id);
-    setActiveTab("chat");
+    setActiveTabState("chat");
+    pushWorkspaceRoute({ productId: id, tab: "chat" });
   }
 
   function deselectProduct() {
     setActiveProductId(null);
-    setActiveTab("products");
+    setActiveTabState("products");
+    pushWorkspaceRoute({ productId: null, tab: "products" });
   }
 
   function updateActiveProduct(updates: ProductBriefUpdates) {
@@ -381,6 +462,10 @@ export function useMarketingCopilot({
           approvedAt: undefined,
           scheduledAt: undefined,
           scheduledFor: undefined,
+          postedAt: undefined,
+          postedUrl: undefined,
+          outcome: undefined,
+          outcomeNotes: undefined,
           time: "Edited. Needs review.",
         };
       }),
@@ -451,6 +536,7 @@ export function useMarketingCopilot({
     generatePlan,
     generateContentPlan,
     generateResearchTargets,
+    markDraftPosted,
     runLiveResearch,
     removeProductResource,
     removeResearchTarget,
@@ -462,6 +548,7 @@ export function useMarketingCopilot({
     updateChatMessages,
     updateDraft,
     updateActiveProduct,
+    updateDraftOutcome,
   };
 
   function touchActiveProduct(update: (product: ProductWorkspace) => ProductWorkspace) {

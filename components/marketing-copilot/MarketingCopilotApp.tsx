@@ -19,11 +19,15 @@ import type { ProductWorkspace } from "@/lib/types";
 
 type MarketingCopilotAppProps = {
   currentUser: AppUser | null;
+  initialProductId?: string;
+  initialTab?: string;
   initialProductWorkspaces: ProductWorkspace[];
 };
 
 export function MarketingCopilotApp({
   currentUser,
+  initialProductId,
+  initialTab,
   initialProductWorkspaces,
 }: MarketingCopilotAppProps) {
   const [briefAssistRequest, setBriefAssistRequest] = useState<{
@@ -56,6 +60,7 @@ export function MarketingCopilotApp({
     generatePlan,
     generateContentPlan,
     generateResearchTargets,
+    markDraftPosted,
     runLiveResearch,
     createProduct,
     deleteProduct,
@@ -69,9 +74,12 @@ export function MarketingCopilotApp({
     setActiveTab,
     updateChatMessages,
     updateDraft,
+    updateDraftOutcome,
     updateActiveProduct,
   } = useMarketingCopilot({
     enablePersistence: Boolean(currentUser),
+    initialProductId,
+    initialTab,
     initialProductWorkspaces,
   });
 
@@ -147,6 +155,8 @@ export function MarketingCopilotApp({
                 drafts={drafts}
                 onApprove={approveDraft}
                 onDraftChange={updateDraft}
+                onDraftOutcomeChange={updateDraftOutcome}
+                onMarkPosted={markDraftPosted}
                 onSchedule={scheduleDraft}
               />
             )}
