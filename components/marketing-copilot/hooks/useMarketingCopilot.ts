@@ -70,6 +70,7 @@ export function useMarketingCopilot({
   );
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(initialConnectionNotice);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(true);
   const [workspaceSaveStatus, setWorkspaceSaveStatus] = useState<WorkspaceSaveStatus>(
     enablePersistence ? "saved" : "disabled",
   );
@@ -115,7 +116,8 @@ export function useMarketingCopilot({
       .then(({ accounts: nextAccounts }) => {
         setAccounts((current) => mergeConnectedAccounts(current, nextAccounts));
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setIsLoadingConnections(false));
   }, [initialTikTokResult]);
 
   useEffect(() => {
@@ -533,6 +535,7 @@ export function useMarketingCopilot({
     contentIdeaReadiness,
     isGeneratingContentIdeas,
     isGeneratingResearch,
+    isLoadingConnections,
     addProductResource,
     addResearchTarget,
     approveDraft,

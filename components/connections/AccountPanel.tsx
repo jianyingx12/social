@@ -2,11 +2,17 @@ import type { Account, AccountPlatform } from "@/lib/types";
 
 type AccountPanelProps = {
   accounts: Account[];
+  isLoadingConnections: boolean;
   onConnect: (platform: AccountPlatform) => void;
   onDisconnect: (platform: AccountPlatform) => void;
 };
 
-export function AccountPanel({ accounts, onConnect, onDisconnect }: AccountPanelProps) {
+export function AccountPanel({
+  accounts,
+  isLoadingConnections,
+  onConnect,
+  onDisconnect,
+}: AccountPanelProps) {
   return (
     <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -20,6 +26,8 @@ export function AccountPanel({ accounts, onConnect, onDisconnect }: AccountPanel
         <div className="mt-5 grid gap-3">
           {accounts.map((account) => {
             const isConnected = account.status === "Connected";
+            const isChecking = isLoadingConnections && account.name !== "Instagram";
+            const displayStatus = isChecking ? "Checking" : account.status;
 
             return (
               <article
@@ -41,7 +49,7 @@ export function AccountPanel({ accounts, onConnect, onDisconnect }: AccountPanel
                             : "bg-white text-slate-700 ring-slate-200"
                         }`}
                       >
-                        {account.status}
+                        {displayStatus}
                       </span>
                     </div>
                     {isConnected && account.handle && (
@@ -67,15 +75,17 @@ export function AccountPanel({ accounts, onConnect, onDisconnect }: AccountPanel
                     <button
                       onClick={() => onConnect(account.name)}
                       className="flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                      disabled={account.name === "Instagram"}
+                      disabled={account.name === "Instagram" || isChecking}
                     >
-                      {account.name === "Instagram"
+                      {isChecking
+                        ? "Checking..."
+                        : account.name === "Instagram"
                         ? "Not wired yet"
                         : isConnected
                           ? "Reconnect"
                           : `Connect ${account.name}`}
                     </button>
-                    {isConnected && (
+                    {isConnected && !isChecking && (
                       <button
                         onClick={() => onDisconnect(account.name)}
                         className="flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm font-semibold leading-tight text-slate-800 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"

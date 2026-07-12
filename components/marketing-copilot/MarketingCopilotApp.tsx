@@ -51,6 +51,7 @@ export function MarketingCopilotApp({
     workspaceSaveStatus,
     isGeneratingContentIdeas,
     isGeneratingResearch,
+    isLoadingConnections,
     addResearchTarget,
     addProductResource,
     approveDraft,
@@ -194,6 +195,7 @@ export function MarketingCopilotApp({
             {activeTab === "connect" && (
               <AccountPanel
                 accounts={accounts}
+                isLoadingConnections={isLoadingConnections}
                 onConnect={connectAccount}
                 onDisconnect={disconnectConnectedAccount}
               />
