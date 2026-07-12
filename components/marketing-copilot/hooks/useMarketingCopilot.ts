@@ -46,7 +46,14 @@ import {
   getActiveProduct,
   getProductContext,
 } from "./product-workspace";
-import { createResearchTargets, mergeOpportunities } from "./research-workflow";
+import {
+  createResearchTargets,
+  markOpportunityDrafted,
+  mergeOpportunities,
+  reconsiderOpportunity,
+  rejectOpportunity,
+  type RejectionReason,
+} from "./research-workflow";
 import {
   useWorkspaceAutosave,
   type WorkspaceSaveStatus,
@@ -387,8 +394,26 @@ export function useMarketingCopilot({
     }
 
     const draft = createDraftFromOpportunity(opportunity);
-    touchActiveProduct((product) => ({ ...product, drafts: [draft, ...product.drafts] }));
+    touchActiveProduct((product) => ({
+      ...product,
+      drafts: [draft, ...product.drafts],
+      opportunities: markOpportunityDrafted(product.opportunities, opportunityId),
+    }));
     setActiveTab("review");
+  }
+
+  function rejectOrganicOpening(opportunityId: number, reason: RejectionReason) {
+    touchActiveProduct((product) => ({
+      ...product,
+      opportunities: rejectOpportunity(product.opportunities, opportunityId, reason),
+    }));
+  }
+
+  function reconsiderOrganicOpening(opportunityId: number) {
+    touchActiveProduct((product) => ({
+      ...product,
+      opportunities: reconsiderOpportunity(product.opportunities, opportunityId),
+    }));
   }
 
   return {
@@ -426,7 +451,9 @@ export function useMarketingCopilot({
     runLiveResearch,
     removeProductResource,
     removeResearchTarget,
+    reconsiderOrganicOpening,
     renameProduct,
+    rejectOrganicOpening,
     scheduleDraft,
     selectProduct,
     sendContentIdeaToReview,

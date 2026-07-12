@@ -69,7 +69,9 @@ export function MarketingCopilotApp({
     deselectProduct,
     removeProductResource,
     removeResearchTarget,
+    reconsiderOrganicOpening,
     renameProduct,
+    rejectOrganicOpening,
     scheduleDraft,
     selectProduct,
     sendContentIdeaToReview,
@@ -134,6 +136,8 @@ export function MarketingCopilotApp({
                 onRunResearch={runLiveResearch}
                 onOpenBrief={() => setActiveTab("brief")}
                 onRemoveTarget={removeResearchTarget}
+                onReject={rejectOrganicOpening}
+                onReconsider={reconsiderOrganicOpening}
               />
             )}
             {activeTab === "brief" && activeProduct && (

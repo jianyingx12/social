@@ -192,6 +192,8 @@ It includes:
 - platform
 - source
 - title
+- status
+- rejection reason
 - action type
 - intent
 - demand signal
@@ -205,6 +207,15 @@ It includes:
 - suggested reply
 
 The Research view shows organic openings as a ranked feed. Each research pass returns a small batch of opportunities, and the app merges new results by source URL, dedupes existing sources, and sorts by fit score so the highest-fit opportunities stay near the top. The user can run another pass from the bottom of the opportunity list to find more without turning the page into an unbounded result dump.
+
+Opening statuses are:
+
+- New
+- Saved
+- Rejected
+- Drafted
+
+Rejected openings are hidden from the default feed but can be shown again and reconsidered. Rejection reasons include bad fit, too risky, too promotional, low intent, wrong audience, duplicate, and not now. This creates a lightweight feedback loop for future research quality.
 
 The old Opportunities view has been reframed as Research because opportunities should come from research, not appear as an isolated tab. Opportunity cards support drafting organic actions into the review queue, including the source URL and action guidance so review does not lose context.
 

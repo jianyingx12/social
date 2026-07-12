@@ -1,10 +1,63 @@
 import type { Opportunity, ProductWorkspace, ResearchTarget } from "@/lib/types";
 
+export type RejectionReason = NonNullable<Opportunity["rejectionReason"]>;
+
+export const rejectionReasons: RejectionReason[] = [
+  "Bad fit",
+  "Too risky",
+  "Too promotional",
+  "Low intent",
+  "Wrong audience",
+  "Duplicate",
+  "Not now",
+];
+
 export function mergeOpportunities(current: Opportunity[], next: Opportunity[]) {
   const currentSources = new Set(current.map((opportunity) => opportunity.source));
-  const uniqueNext = next.filter((opportunity) => !currentSources.has(opportunity.source));
+  const uniqueNext = next
+    .filter((opportunity) => !currentSources.has(opportunity.source))
+    .map((opportunity) => ({ ...opportunity, status: opportunity.status ?? "New" }));
 
   return [...uniqueNext, ...current].sort((first, second) => second.score - first.score);
+}
+
+export function rejectOpportunity(
+  opportunities: Opportunity[],
+  id: number,
+  reason: RejectionReason,
+) {
+  return opportunities.map((opportunity) =>
+    opportunity.id === id
+      ? {
+          ...opportunity,
+          status: "Rejected" as const,
+          rejectionReason: reason,
+        }
+      : opportunity,
+  );
+}
+
+export function reconsiderOpportunity(opportunities: Opportunity[], id: number) {
+  return opportunities.map((opportunity) =>
+    opportunity.id === id
+      ? {
+          ...opportunity,
+          status: "New" as const,
+          rejectionReason: undefined,
+        }
+      : opportunity,
+  );
+}
+
+export function markOpportunityDrafted(opportunities: Opportunity[], id: number) {
+  return opportunities.map((opportunity) =>
+    opportunity.id === id
+      ? {
+          ...opportunity,
+          status: "Drafted" as const,
+        }
+      : opportunity,
+  );
 }
 
 export function createResearchTargets(product: ProductWorkspace): Omit<ResearchTarget, "id">[] {

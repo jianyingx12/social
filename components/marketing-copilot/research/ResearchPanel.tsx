@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Opportunity, ProductWorkspace, ResearchChannel, ResearchTarget } from "@/lib/types";
+import type { RejectionReason } from "../hooks/research-workflow";
 import { OpportunityList } from "./OpportunityList";
 import { ResearchAgentPanel } from "./ResearchAgentPanel";
 import { SourceHintsPanel } from "./SourceHintsPanel";
@@ -17,6 +18,8 @@ type ResearchPanelProps = {
   onGenerateTargets: () => void;
   onOpenBrief: () => void;
   onRemoveTarget: (id: number) => void;
+  onReject: (id: number, reason: RejectionReason) => void;
+  onReconsider: (id: number) => void;
   onRunResearch: () => void;
 };
 
@@ -31,6 +34,8 @@ export function ResearchPanel({
   onGenerateTargets,
   onOpenBrief,
   onRemoveTarget,
+  onReject,
+  onReconsider,
   onRunResearch,
 }: ResearchPanelProps) {
   const [channel, setChannel] = useState<ResearchChannel>("Search");
@@ -55,7 +60,7 @@ export function ResearchPanel({
   }
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+    <section className="grid items-stretch gap-4 xl:grid-cols-[0.9fr_1.1fr]">
       <div className="grid gap-4 lg:self-start">
         <ResearchAgentPanel
           isGeneratingResearch={isGeneratingResearch}
@@ -85,6 +90,8 @@ export function ResearchPanel({
         opportunities={opportunities}
         onFindMore={onRunResearch}
         onDraft={onDraft}
+        onReject={onReject}
+        onReconsider={onReconsider}
       />
     </section>
   );

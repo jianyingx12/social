@@ -193,6 +193,15 @@ export type Opportunity = {
   platform: Platform;
   source: string;
   title: string;
+  status?: "New" | "Saved" | "Rejected" | "Drafted";
+  rejectionReason?:
+    | "Bad fit"
+    | "Too risky"
+    | "Too promotional"
+    | "Low intent"
+    | "Wrong audience"
+    | "Duplicate"
+    | "Not now";
   actionType?:
     | "Direct reply"
     | "Content angle"
