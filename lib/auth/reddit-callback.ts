@@ -6,6 +6,7 @@ import {
   redditStateCookie,
 } from "./reddit";
 import { getCurrentUserStorageKey } from "./current-user";
+import { decodeOAuthStateCookie } from "./oauth-state";
 import { saveConnectedAccount } from "@/lib/db/connected-accounts";
 
 export async function handleRedditCallback(request: NextRequest) {
@@ -15,18 +16,19 @@ export async function handleRedditCallback(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const state = requestUrl.searchParams.get("state");
   const storedState = request.cookies.get(redditStateCookie)?.value;
+  const oauthState = decodeOAuthStateCookie(storedState);
 
   if (error) {
     redirectUrl.searchParams.set("reddit", "denied");
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (!code || !state || !storedState || state !== storedState) {
+  if (!code || !state || !oauthState || state !== oauthState.state) {
     redirectUrl.searchParams.set("reddit", "invalid-state");
     return NextResponse.redirect(redirectUrl);
   }
 
-  const userId = await getCurrentUserStorageKey();
+  const userId = oauthState.userId || (await getCurrentUserStorageKey());
 
   if (!userId) {
     redirectUrl.searchParams.set("reddit", "error");

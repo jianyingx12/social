@@ -7,6 +7,7 @@ import {
   tiktokStateCookie,
 } from "@/lib/auth/tiktok";
 import { getCurrentUserStorageKey } from "@/lib/auth/current-user";
+import { encodeOAuthStateCookie } from "@/lib/auth/oauth-state";
 
 export async function GET(request: NextRequest) {
   const userId = await getCurrentUserStorageKey();
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
   const state = randomUUID();
   const response = NextResponse.redirect(createTikTokAuthorizationUrl(state));
 
-  response.cookies.set(tiktokStateCookie, state, {
+  response.cookies.set(tiktokStateCookie, encodeOAuthStateCookie({ state, userId }), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
