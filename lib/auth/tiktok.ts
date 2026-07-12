@@ -53,8 +53,7 @@ export function getTikTokConfig() {
   return {
     clientKey: process.env.TIKTOK_CLIENT_KEY,
     clientSecret: process.env.TIKTOK_CLIENT_SECRET,
-    redirectUri:
-      process.env.TIKTOK_REDIRECT_URI ?? "https://example.com/api/auth/callback/tiktok",
+    redirectUri: process.env.TIKTOK_REDIRECT_URI,
   };
 }
 
@@ -75,7 +74,7 @@ export function createTikTokAuthorizationUrl(state: string) {
     client_key: config.clientKey ?? "",
     response_type: "code",
     scope: tiktokScopes.join(","),
-    redirect_uri: config.redirectUri,
+    redirect_uri: config.redirectUri ?? "",
     state,
   });
 
@@ -89,7 +88,7 @@ export async function exchangeTikTokCode(code: string) {
     client_secret: config.clientSecret ?? "",
     code,
     grant_type: "authorization_code",
-    redirect_uri: config.redirectUri,
+    redirect_uri: config.redirectUri ?? "",
   });
 
   const response = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {

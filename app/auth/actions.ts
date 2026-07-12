@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { getSafeInternalRedirectPath } from "@/lib/auth/redirect-path";
 import { auth } from "@/lib/auth/server";
 
 type AuthActionState = {
@@ -24,6 +25,7 @@ export async function signInWithEmail(
 ): Promise<AuthActionState> {
   const email = readRequiredString(formData, "email");
   const password = readRequiredString(formData, "password");
+  const nextPath = getSafeInternalRedirectPath(formData.get("next"));
 
   if (!email || !password) {
     return { error: "Email and password are required." };
@@ -35,7 +37,7 @@ export async function signInWithEmail(
     return { error: error.message || "Could not sign in. Try again." };
   }
 
-  redirect("/");
+  redirect(nextPath);
 }
 
 export async function signUpWithEmail(

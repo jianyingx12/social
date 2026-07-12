@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
   const userId = await getCurrentUserStorageKey();
 
   if (!userId) {
-    return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+    const signInUrl = new URL("/auth/sign-in", request.url);
+    signInUrl.searchParams.set("next", "/api/auth/reddit/start");
+    return NextResponse.redirect(signInUrl);
   }
 
   const missingEnv = getMissingRedditEnv();
