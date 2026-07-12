@@ -6,13 +6,18 @@ import type { ContentIdea, ProductWorkspace } from "@/lib/types";
 type GenerateContentIdeasParams = {
   onIdeas: (ideas: ContentIdea[]) => void;
   product: ProductWorkspace;
+  source?: "brief" | "research";
 };
 
 export function useContentIdeaGeneration() {
   const [isGeneratingContentIdeas, setIsGeneratingContentIdeas] = useState(false);
   const [contentIdeaError, setContentIdeaError] = useState<string | null>(null);
 
-  async function generateContentIdeas({ onIdeas, product }: GenerateContentIdeasParams) {
+  async function generateContentIdeas({
+    onIdeas,
+    product,
+    source = "brief",
+  }: GenerateContentIdeasParams) {
     if (isGeneratingContentIdeas) {
       return;
     }
@@ -26,7 +31,7 @@ export function useContentIdeaGeneration() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ product }),
+        body: JSON.stringify({ product, source }),
       });
       const data = (await response.json()) as {
         ideas?: ContentIdea[];

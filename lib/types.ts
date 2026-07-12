@@ -183,6 +183,9 @@ export type ContentIdea = {
   body: string;
   attachmentSuggestion: string;
   angle: string;
+  sourceOpportunityTitle?: string;
+  sourceOpportunityUrl?: string;
+  sourceSignal?: string;
 };
 
 export type Opportunity = {

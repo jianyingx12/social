@@ -412,7 +412,7 @@ export function useMarketingCopilot({
     touchActiveProduct((product) => ({ ...product, chatMessages: messages }));
   }
 
-  async function generateContentPlan() {
+  async function generateContentPlan(source: "brief" | "research" = "brief") {
     if (!activeProduct) {
       return;
     }
@@ -421,6 +421,7 @@ export function useMarketingCopilot({
 
     await generateContentIdeas({
       product: activeProduct,
+      source,
       onIdeas: (ideas) => {
         touchProduct(productId, (product) => ({ ...product, contentIdeas: ideas }));
       },
@@ -608,7 +609,7 @@ function mergeOpportunities(current: Opportunity[], next: Opportunity[]) {
   const currentSources = new Set(current.map((opportunity) => opportunity.source));
   const uniqueNext = next.filter((opportunity) => !currentSources.has(opportunity.source));
 
-  return [...uniqueNext, ...current];
+  return [...uniqueNext, ...current].sort((first, second) => second.score - first.score);
 }
 
 function createBlankProduct(name: string): ProductWorkspace {

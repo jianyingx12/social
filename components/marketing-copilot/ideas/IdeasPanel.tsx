@@ -1,4 +1,4 @@
-import type { Account, ContentIdea, Draft } from "@/lib/types";
+import type { Account, ContentIdea, Draft, Opportunity } from "@/lib/types";
 import { AiLoadingState, AiSpinner } from "../shared/AiLoadingState";
 
 type ContentIdeaReadiness = {
@@ -12,8 +12,9 @@ type IdeasPanelProps = {
   error: string | null;
   ideas: ContentIdea[];
   isGenerating: boolean;
+  opportunities: Opportunity[];
   readiness: ContentIdeaReadiness;
-  onGenerateIdeas: () => void;
+  onGenerateIdeas: (source?: "brief" | "research") => void;
   onOpenBrief: () => void;
   onOpenChat: () => void;
   onSendIdeaToReview: (id: number) => void;
@@ -25,6 +26,7 @@ export function IdeasPanel({
   error,
   ideas,
   isGenerating,
+  opportunities,
   readiness,
   onGenerateIdeas,
   onOpenBrief,
@@ -34,6 +36,7 @@ export function IdeasPanel({
   const draftCount = drafts.length;
   const ideaCount = ideas.length;
   const connectedAccounts = accounts.filter((account) => account.status === "Connected");
+  const hasResearch = opportunities.length > 0;
 
   return (
     <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
@@ -61,20 +64,34 @@ export function IdeasPanel({
               </p>
             </div>
           )}
-          <button
-            onClick={onGenerateIdeas}
-            disabled={isGenerating || !readiness.isReady}
-            className="flex min-h-10 w-full items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
-          >
-            {isGenerating ? (
-              <span className="inline-flex items-center gap-2">
-                <AiSpinner />
-                Generating ideas...
-              </span>
-            ) : (
-              "Generate content ideas"
-            )}
-          </button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button
+              onClick={() => onGenerateIdeas("brief")}
+              disabled={isGenerating || !readiness.isReady}
+              className="flex min-h-10 w-full items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-center text-sm font-semibold leading-tight text-white shadow-sm transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              {isGenerating ? (
+                <span className="inline-flex items-center gap-2">
+                  <AiSpinner />
+                  Generating...
+                </span>
+              ) : (
+                "Generate from brief"
+              )}
+            </button>
+            <button
+              onClick={() => onGenerateIdeas("research")}
+              disabled={isGenerating || !readiness.isReady || !hasResearch}
+              className="flex min-h-10 w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-center text-sm font-semibold leading-tight text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Generate from research
+            </button>
+          </div>
+          {readiness.isReady && !hasResearch && (
+            <p className="text-sm leading-6 text-slate-600">
+              Run research first to generate ideas from demand signals.
+            </p>
+          )}
           {!readiness.isReady && (
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
@@ -97,7 +114,7 @@ export function IdeasPanel({
           <div className="mt-5">
             <AiLoadingState
               title="AI is drafting content ideas"
-              description="Using the product brief to create post options, draft copy, and suggested attachment direction."
+              description="Using the product context and available research signals to create post options, draft copy, and suggested attachment direction."
             />
           </div>
         )}
@@ -139,6 +156,33 @@ export function IdeasPanel({
                       {idea.attachmentSuggestion}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">Angle: {idea.angle}</p>
+                    {(idea.sourceOpportunityTitle || idea.sourceSignal) && (
+                      <div className="mt-3 rounded-md border border-slate-200 bg-white p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                          Research source
+                        </p>
+                        {idea.sourceOpportunityTitle && (
+                          <p className="mt-2 text-sm font-semibold text-slate-950">
+                            {idea.sourceOpportunityTitle}
+                          </p>
+                        )}
+                        {idea.sourceSignal && (
+                          <p className="mt-1 text-sm leading-6 text-slate-700">
+                            {idea.sourceSignal}
+                          </p>
+                        )}
+                        {idea.sourceOpportunityUrl && (
+                          <a
+                            href={idea.sourceOpportunityUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-2 inline-flex text-sm font-semibold text-teal-700 transition hover:text-teal-800"
+                          >
+                            Open source
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => onSendIdeaToReview(idea.id)}
@@ -159,6 +203,7 @@ export function IdeasPanel({
           <div className="mt-4 grid gap-3 text-sm">
             <CapabilityRow label="Ideas" value="Available now" />
             <CapabilityRow label="Generated" value={String(ideaCount)} />
+            <CapabilityRow label="Research signals" value={String(opportunities.length)} />
             <CapabilityRow label="Drafts" value={String(draftCount)} />
             <CapabilityRow label="Connected accounts" value={String(connectedAccounts.length)} />
           </div>

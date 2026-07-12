@@ -3,6 +3,7 @@ import { getContentIdeaBriefReadiness } from "@/lib/product-brief-readiness";
 
 type ContentIdeasRequest = {
   product: ProductWorkspace;
+  source: "brief" | "research";
 };
 
 type OpenAITextContent = {
@@ -47,6 +48,7 @@ export function validateContentIdeasRequest(body: unknown): ContentIdeasRequest 
   if (!request.product) {
     throw new Error("Content ideas request is missing product context.");
   }
+  const source = request.source === "research" ? "research" : "brief";
 
   const readiness = getContentIdeaBriefReadiness(request.product);
 
@@ -56,13 +58,19 @@ export function validateContentIdeasRequest(body: unknown): ContentIdeasRequest 
     );
   }
 
+  if (source === "research" && request.product.opportunities.length === 0) {
+    throw new Error("Run research before creating research-backed content ideas.");
+  }
+
   return {
     product: request.product,
+    source,
   };
 }
 
 export async function createContentIdeas({
   product,
+  source,
 }: ContentIdeasRequest): Promise<ContentIdea[]> {
   const apiKey = process.env.OPENAI_API_KEY;
 
@@ -79,8 +87,8 @@ export async function createContentIdeas({
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? defaultModel,
       reasoning: { effort: "low" },
-      instructions: buildInstructions(),
-      input: buildInput(product),
+      instructions: buildInstructions(source),
+      input: buildInput(product, source),
     }),
   });
 
@@ -99,23 +107,31 @@ export async function createContentIdeas({
   return ideas;
 }
 
-function buildInstructions() {
+function buildInstructions(source: ContentIdeasRequest["source"]) {
   return [
     "You are OrganicReach, a practical founder-led marketing copilot.",
-    "Create social content ideas from the product workspace.",
+    source === "research"
+      ? "Create social content ideas from the product workspace and the provided research opportunities."
+      : "Create social content ideas from the product workspace.",
     "Each idea must include ready-to-edit post copy plus a suggested attachment direction.",
     "You may suggest the kind of media the user should attach, such as a screenshot, product image, short demo clip, customer quote graphic, carousel, link, or no attachment.",
     "Do not evaluate uploaded resources, choose a specific user asset, imply you inspected an image or video, or claim any media is already attached.",
     "The user will choose and attach the real image, video, link, or other media themselves.",
     "Stay grounded in the provided product context, customer pain, outcome, proof, voice, channels, and avoid rules.",
-    "Do not invent proof, metrics, customer quotes, connected accounts, public actions, or live research.",
+    source === "research"
+      ? "Use research opportunities as source material. Turn observed pain, questions, objections, and reply angles into reusable organic content."
+      : "Do not invent proof, metrics, customer quotes, connected accounts, public actions, or live research.",
+    "Do not invent proof, metrics, customer quotes, connected accounts, public actions, or source details.",
     "Make each post useful even if nobody clicks a link. Avoid hard selling, hype, fake urgency, and engagement bait.",
-    "Return only valid JSON in this exact shape: {\"ideas\":[{\"platform\":\"Reddit|Hacker News|Indie Hackers|YouTube|TikTok|Instagram|LinkedIn|X / Twitter\",\"format\":\"Post|Image post|Carousel\",\"title\":\"string\",\"body\":\"string\",\"attachmentSuggestion\":\"string\",\"angle\":\"string\"}]}",
+    source === "research"
+      ? "When a content idea is based on a research opportunity, include sourceOpportunityTitle, sourceOpportunityUrl, and sourceSignal from the provided opportunity."
+      : "Leave sourceOpportunityTitle, sourceOpportunityUrl, and sourceSignal empty unless a provided research opportunity directly supports the idea.",
+    "Return only valid JSON in this exact shape: {\"ideas\":[{\"platform\":\"Reddit|Hacker News|Indie Hackers|YouTube|TikTok|Instagram|LinkedIn|X / Twitter\",\"format\":\"Post|Image post|Carousel\",\"title\":\"string\",\"body\":\"string\",\"attachmentSuggestion\":\"string\",\"angle\":\"string\",\"sourceOpportunityTitle\":\"string\",\"sourceOpportunityUrl\":\"string\",\"sourceSignal\":\"string\"}]}",
     "Return 3 ideas.",
   ].join("\n");
 }
 
-function buildInput(product: ProductWorkspace) {
+function buildInput(product: ProductWorkspace, source: ContentIdeasRequest["source"]) {
   return [
     {
       role: "developer",
@@ -124,7 +140,9 @@ function buildInput(product: ProductWorkspace) {
     {
       role: "user",
       content:
-        "Create content ideas with draft copy and tell me what kind of media or attachment would fit each one.",
+        source === "research"
+          ? "Create content ideas from the strongest research opportunities. Make each idea traceable to a source signal."
+          : "Create content ideas with draft copy and tell me what kind of media or attachment would fit each one.",
     },
   ];
 }
@@ -145,7 +163,31 @@ function buildContext(product: ProductWorkspace) {
     `Keywords/customer language: ${product.keywords || "Not provided"}`,
     `Avoid/rules: ${product.avoid || "Not provided"}`,
     `Extra brief notes: ${product.brief || "Not provided"}`,
+    `Research opportunities:\n${buildOpportunityContext(product)}`,
   ].join("\n\n");
+}
+
+function buildOpportunityContext(product: ProductWorkspace) {
+  if (product.opportunities.length === 0) {
+    return "- None yet";
+  }
+
+  return product.opportunities
+    .slice(0, 8)
+    .map((opportunity, index) =>
+      [
+        `Opportunity ${index + 1}: ${opportunity.title}`,
+        `Platform: ${opportunity.platform}`,
+        `Source: ${opportunity.source}`,
+        `Intent: ${opportunity.intent}`,
+        `Signal: ${opportunity.signal || "Not provided"}`,
+        `Angle: ${opportunity.angle}`,
+        `Why it fits: ${opportunity.whyItFits || "Not provided"}`,
+        `Recommended action: ${opportunity.recommendedAction || "Not provided"}`,
+        `Reply strategy: ${opportunity.replyStrategy || "Not provided"}`,
+      ].join("\n"),
+    )
+    .join("\n\n");
 }
 
 function extractResponseText(data: OpenAIResponse) {
@@ -211,6 +253,9 @@ function sanitizeIdea(value: unknown): Omit<ContentIdea, "id"> | null {
   const body = sanitizeText(source.body, 1800);
   const attachmentSuggestion = sanitizeText(source.attachmentSuggestion, 500);
   const angle = sanitizeText(source.angle, 240);
+  const sourceOpportunityTitle = sanitizeText(source.sourceOpportunityTitle, 180);
+  const sourceOpportunityUrl = sanitizeText(source.sourceOpportunityUrl, 500);
+  const sourceSignal = sanitizeText(source.sourceSignal, 500);
 
   if (!platform || !format || !title || !body || !attachmentSuggestion || !angle) {
     return null;
@@ -223,6 +268,9 @@ function sanitizeIdea(value: unknown): Omit<ContentIdea, "id"> | null {
     body,
     attachmentSuggestion,
     angle,
+    sourceOpportunityTitle,
+    sourceOpportunityUrl,
+    sourceSignal,
   };
 }
 

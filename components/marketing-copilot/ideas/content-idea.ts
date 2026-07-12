@@ -12,7 +12,12 @@ export function createDraftFromContentIdea(idea: ContentIdea): Draft {
       "",
       `Suggested attachment: ${idea.attachmentSuggestion}`,
       `Angle: ${idea.angle}`,
-    ].join("\n"),
+      idea.sourceOpportunityTitle ? `Source signal: ${idea.sourceOpportunityTitle}` : "",
+      idea.sourceSignal ? `Research signal: ${idea.sourceSignal}` : "",
+      idea.sourceOpportunityUrl ? `Source URL: ${idea.sourceOpportunityUrl}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
     time: "Ready to edit",
   };
 }
