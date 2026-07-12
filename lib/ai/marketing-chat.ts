@@ -174,7 +174,12 @@ function buildContext(
     .join("\n");
   const opportunitySummary = opportunities
     .slice(0, 5)
-    .map((opportunity) => `- ${opportunity.platform}: ${opportunity.title} (${opportunity.score}% fit)`)
+    .map(
+      (opportunity) =>
+        `- ${opportunity.platform}: ${opportunity.title} (${opportunity.score}% fit${
+          opportunity.actionType ? `, ${opportunity.actionType}` : ""
+        })`,
+    )
     .join("\n");
   const draftSummary = drafts
     .slice(0, 5)

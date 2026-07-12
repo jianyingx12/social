@@ -18,7 +18,7 @@ The app is moving toward a phase-based workflow:
 2. The AI fills or improves the product brief.
 3. The user can manually edit the brief at any time.
 4. The app builds a research plan across relevant channels.
-5. Research produces demand signals and opportunities.
+5. Research produces demand signals and organic marketing openings.
 6. The AI drafts helpful replies or research-backed content ideas.
 7. The user reviews, approves, posts manually, and tracks outcomes.
 
@@ -184,11 +184,15 @@ The purpose of research is to find:
 
 Opportunities are the output of research.
 
-An opportunity represents a conversation or demand signal worth acting on. It includes:
+An opportunity represents a conversation, signal, or market clue worth acting on through organic
+marketing. It is not limited to "reply to this thread." The best action can be a direct reply,
+content angle, positioning insight, audience habitat, objection to mine, or follow-up experiment.
+It includes:
 
 - platform
 - source
 - title
+- action type
 - intent
 - demand signal
 - fit score
@@ -200,9 +204,9 @@ An opportunity represents a conversation or demand signal worth acting on. It in
 - suggested follow-up
 - suggested reply
 
-The Research view shows opportunities as a ranked feed. Each research pass returns a small batch of opportunities, and the app merges new results by source URL, dedupes existing sources, and sorts by fit score so the highest-fit opportunities stay near the top. The user can run another pass from the bottom of the opportunity list to find more without turning the page into an unbounded result dump.
+The Research view shows organic openings as a ranked feed. Each research pass returns a small batch of opportunities, and the app merges new results by source URL, dedupes existing sources, and sorts by fit score so the highest-fit opportunities stay near the top. The user can run another pass from the bottom of the opportunity list to find more without turning the page into an unbounded result dump.
 
-The old Opportunities view has been reframed as Research because opportunities should come from research, not appear as an isolated tab. Opportunity cards support drafting replies into the review queue, including the source URL and action guidance so review does not lose context.
+The old Opportunities view has been reframed as Research because opportunities should come from research, not appear as an isolated tab. Opportunity cards support drafting organic actions into the review queue, including the source URL and action guidance so review does not lose context.
 
 ## Drafts And Review
 

@@ -193,6 +193,13 @@ export type Opportunity = {
   platform: Platform;
   source: string;
   title: string;
+  actionType?:
+    | "Direct reply"
+    | "Content angle"
+    | "Positioning insight"
+    | "Audience habitat"
+    | "Objection mining"
+    | "Follow-up experiment";
   intent: string;
   score: number;
   risk: "Low" | "Medium" | "High";

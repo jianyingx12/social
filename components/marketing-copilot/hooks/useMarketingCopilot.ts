@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { initialAccounts } from "@/lib/marketing-data";
 import { getContentIdeaBriefReadiness } from "@/lib/product-brief-readiness";
@@ -8,8 +8,6 @@ import type {
   AccountPlatform,
   ChatMessage,
   Draft,
-  DraftOutcome,
-  Opportunity,
   ProductBriefUpdates,
   ProductResource,
   ResearchTarget,
@@ -34,6 +32,25 @@ import {
 } from "../navigation/workspace-route";
 import { useContentIdeaGeneration } from "../ideas/useContentIdeaGeneration";
 import { useResearchGeneration } from "../research/useResearchGeneration";
+import {
+  approveDrafts,
+  createDraftFromOpportunity,
+  markDraftPostedInDrafts,
+  scheduleDrafts,
+  updateDraftCopyInDrafts,
+  updateDraftOutcomeInDrafts,
+  type DraftOutcomeUpdates,
+} from "./draft-workflow";
+import {
+  createBlankProduct,
+  getActiveProduct,
+  getProductContext,
+} from "./product-workspace";
+import { createResearchTargets, mergeOpportunities } from "./research-workflow";
+import {
+  useWorkspaceAutosave,
+  type WorkspaceSaveStatus,
+} from "./useWorkspaceAutosave";
 
 type UseMarketingCopilotOptions = {
   enablePersistence?: boolean;
@@ -42,7 +59,7 @@ type UseMarketingCopilotOptions = {
   initialProductWorkspaces?: ProductWorkspace[];
 };
 
-export type WorkspaceSaveStatus = "disabled" | "idle" | "saving" | "saved" | "error";
+export type { WorkspaceSaveStatus };
 
 export function useMarketingCopilot({
   enablePersistence = false,
@@ -71,14 +88,10 @@ export function useMarketingCopilot({
   const [connectionNotice, setConnectionNotice] =
     useState<ConnectionNotice | null>(initialConnectionNotice);
   const [isLoadingConnections, setIsLoadingConnections] = useState(true);
-  const [workspaceSaveStatus, setWorkspaceSaveStatus] = useState<WorkspaceSaveStatus>(
-    enablePersistence ? "saved" : "disabled",
-  );
-  const hasMountedPersistence = useRef(false);
-  const saveVersion = useRef(0);
   const { contentIdeaError, generateContentIdeas, isGeneratingContentIdeas } =
     useContentIdeaGeneration();
   const { generateResearch, isGeneratingResearch, researchError } = useResearchGeneration();
+  const workspaceSaveStatus = useWorkspaceAutosave({ enablePersistence, products });
 
   const activeProduct = getActiveProduct(products, activeProductId);
   const drafts = activeProduct?.drafts ?? [];
@@ -120,48 +133,6 @@ export function useMarketingCopilot({
       .finally(() => setIsLoadingConnections(false));
   }, [initialTikTokResult]);
 
-  useEffect(() => {
-    if (!enablePersistence) {
-      return;
-    }
-
-    if (!hasMountedPersistence.current) {
-      hasMountedPersistence.current = true;
-      return;
-    }
-
-    const currentSaveVersion = saveVersion.current + 1;
-    saveVersion.current = currentSaveVersion;
-
-    const timeoutId = window.setTimeout(() => {
-      setWorkspaceSaveStatus("saving");
-
-      fetch("/api/workspaces", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ products }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Could not save workspace.");
-          }
-
-          if (saveVersion.current === currentSaveVersion) {
-            setWorkspaceSaveStatus("saved");
-          }
-        })
-        .catch(() => {
-          if (saveVersion.current === currentSaveVersion) {
-            setWorkspaceSaveStatus("error");
-          }
-        });
-    }, 600);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [enablePersistence, products]);
-
   function connectAccount(platform: AccountPlatform) {
     if (platform === "Reddit") {
       window.location.href = "/api/auth/reddit/start";
@@ -194,85 +165,30 @@ export function useMarketingCopilot({
   }
 
   function approveDraft(id: number) {
-    const approvedAt = new Date().toISOString();
-
     touchActiveProduct((product) => ({
       ...product,
-      drafts: product.drafts.map((draft) =>
-        draft.id === id
-          ? {
-              ...draft,
-              status: "Approved",
-              approvedAt,
-              scheduledAt: undefined,
-              time: "Approved. Choose a schedule time.",
-            }
-          : draft,
-      ),
+      drafts: approveDrafts(product.drafts, id),
     }));
   }
 
   function scheduleDraft(id: number, scheduledFor: string) {
-    const trimmedScheduledFor = scheduledFor.trim();
-
-    if (!trimmedScheduledFor) {
-      return;
-    }
-
     touchActiveProduct((product) => ({
       ...product,
-      drafts: product.drafts.map((draft) =>
-        draft.id === id
-          ? {
-              ...draft,
-              status: "Scheduled",
-              scheduledAt: new Date().toISOString(),
-              scheduledFor: trimmedScheduledFor,
-              time: `Scheduled for ${formatScheduleTime(trimmedScheduledFor)}`,
-            }
-          : draft,
-      ),
+      drafts: scheduleDrafts(product.drafts, id, scheduledFor),
     }));
   }
 
   function markDraftPosted(id: number) {
-    const postedAt = new Date().toISOString();
-
     touchActiveProduct((product) => ({
       ...product,
-      drafts: product.drafts.map((draft) =>
-        draft.id === id
-          ? {
-              ...draft,
-              status: "Posted",
-              postedAt,
-              outcome: draft.outcome ?? "No response yet",
-              time: "Posted. Track the result when you know it.",
-            }
-          : draft,
-      ),
+      drafts: markDraftPostedInDrafts(product.drafts, id),
     }));
   }
 
-  function updateDraftOutcome(
-    id: number,
-    updates: Partial<Pick<Draft, "postedUrl" | "outcomeNotes">> & {
-      outcome?: DraftOutcome | "";
-    },
-  ) {
+  function updateDraftOutcome(id: number, updates: DraftOutcomeUpdates) {
     touchActiveProduct((product) => ({
       ...product,
-      drafts: product.drafts.map((draft) => {
-        if (draft.id !== id) {
-          return draft;
-        }
-
-        return {
-          ...draft,
-          ...updates,
-          outcome: updates.outcome === "" ? undefined : updates.outcome,
-        };
-      }),
+      drafts: updateDraftOutcomeInDrafts(product.drafts, id, updates),
     }));
   }
 
@@ -445,33 +361,7 @@ export function useMarketingCopilot({
   function updateDraft(id: number, updates: Partial<Pick<Draft, "title" | "body" | "scheduledFor">>) {
     touchActiveProduct((product) => ({
       ...product,
-      drafts: product.drafts.map((draft) => {
-        if (draft.id !== id) {
-          return draft;
-        }
-
-        const copyChanged =
-          (typeof updates.title === "string" && updates.title !== draft.title) ||
-          (typeof updates.body === "string" && updates.body !== draft.body);
-
-        if (!copyChanged) {
-          return { ...draft, ...updates };
-        }
-
-        return {
-          ...draft,
-          ...updates,
-          status: "Draft",
-          approvedAt: undefined,
-          scheduledAt: undefined,
-          scheduledFor: undefined,
-          postedAt: undefined,
-          postedUrl: undefined,
-          outcome: undefined,
-          outcomeNotes: undefined,
-          time: "Edited. Needs review.",
-        };
-      }),
+      drafts: updateDraftCopyInDrafts(product.drafts, id, updates),
     }));
   }
 
@@ -496,25 +386,7 @@ export function useMarketingCopilot({
       return;
     }
 
-    const draft: Draft = {
-      id: Date.now(),
-      platform: opportunity.platform,
-      format: "Reply",
-      status: "Draft",
-      title: `Reply to: ${opportunity.title}`,
-      body: [
-        opportunity.suggestedReply,
-        "",
-        `Source: ${opportunity.source}`,
-        opportunity.recommendedAction ? `Recommended action: ${opportunity.recommendedAction}` : "",
-        opportunity.replyStrategy ? `Reply posture: ${opportunity.replyStrategy}` : "",
-        opportunity.followUp ? `Follow-up: ${opportunity.followUp}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n"),
-      time: "Ready for review",
-    };
-
+    const draft = createDraftFromOpportunity(opportunity);
     touchActiveProduct((product) => ({ ...product, drafts: [draft, ...product.drafts] }));
     setActiveTab("review");
   }
@@ -590,116 +462,4 @@ export function useMarketingCopilot({
       return [updatedProduct, ...otherProducts];
     });
   }
-}
-
-function formatScheduleTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-function mergeOpportunities(current: Opportunity[], next: Opportunity[]) {
-  const currentSources = new Set(current.map((opportunity) => opportunity.source));
-  const uniqueNext = next.filter((opportunity) => !currentSources.has(opportunity.source));
-
-  return [...uniqueNext, ...current].sort((first, second) => second.score - first.score);
-}
-
-function createBlankProduct(name: string): ProductWorkspace {
-  return {
-    id: `product-${Date.now()}`,
-    name,
-    productType: "Other",
-    productUrl: "",
-    oneLine: "",
-    audience: "",
-    problem: "",
-    outcome: "",
-    differentiator: "",
-    proof: "",
-    voice: "",
-    channels: "",
-    keywords: "",
-    avoid: "",
-    brief: "",
-    resources: [],
-    researchTargets: [],
-    chatMessages: [],
-    drafts: [],
-    opportunities: [],
-    contentIdeas: [],
-  };
-}
-
-function createResearchTargets(product: ProductWorkspace): Omit<ResearchTarget, "id">[] {
-  const keywords = splitSignals(product.keywords);
-  const channels = splitSignals(product.channels);
-  const problem = product.problem || product.oneLine || product.audience || product.name;
-  const primaryKeyword = keywords[0] || product.oneLine || product.name;
-  const communityQuery = channels[0] || product.audience || product.productType;
-
-  return [
-    {
-      channel: "Search",
-      query: `${primaryKeyword} problem`,
-      signal: "People actively searching for help, alternatives, or how-to advice.",
-      notes: "Look for recurring question wording, comparison searches, and pages ranking for pain-aware queries.",
-    },
-    {
-      channel: "Reddit",
-      query: `${communityQuery} ${problem}`,
-      signal: "Complaints, help requests, workaround discussions, and recommendation threads.",
-      notes: "Prioritize threads where a useful answer can stand on its own without a product mention.",
-    },
-    {
-      channel: "YouTube",
-      query: primaryKeyword,
-      signal: "Comment sections where viewers ask follow-up questions or describe what tutorials missed.",
-      notes: "Look for repeated confusion, requested tools, and comments comparing current workflows.",
-    },
-    {
-      channel: "Review site",
-      query: `${primaryKeyword} reviews alternatives`,
-      signal: "Competitor praise, objections, missing features, and switching triggers.",
-      notes: "Useful for positioning and reply angles, even if it does not produce direct conversations.",
-    },
-  ];
-}
-
-function splitSignals(value: string) {
-  return value
-    .split(/[,;\n]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function getActiveProduct(products: ProductWorkspace[], activeProductId: string | null) {
-  return products.find((product) => product.id === activeProductId) ?? null;
-}
-
-function getProductContext(product: ProductWorkspace) {
-  return [
-    `Product type: ${product.productType}`,
-    product.oneLine ? `One-line description: ${product.oneLine}` : "",
-    product.productUrl ? `Link: ${product.productUrl}` : "",
-    product.audience ? `Audience: ${product.audience}` : "",
-    product.problem ? `Problem/desire: ${product.problem}` : "",
-    product.outcome ? `Outcome promised: ${product.outcome}` : "",
-    product.differentiator ? `Differentiator: ${product.differentiator}` : "",
-    product.proof ? `Proof: ${product.proof}` : "",
-    product.voice ? `Voice: ${product.voice}` : "",
-    product.channels ? `Channels: ${product.channels}` : "",
-    product.keywords ? `Keywords: ${product.keywords}` : "",
-    product.avoid ? `Avoid/rules: ${product.avoid}` : "",
-    product.brief ? `Extra notes: ${product.brief}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
 }

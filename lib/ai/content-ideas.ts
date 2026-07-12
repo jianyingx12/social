@@ -179,6 +179,7 @@ function buildOpportunityContext(product: ProductWorkspace) {
         `Opportunity ${index + 1}: ${opportunity.title}`,
         `Platform: ${opportunity.platform}`,
         `Source: ${opportunity.source}`,
+        `Action type: ${opportunity.actionType || "Not provided"}`,
         `Intent: ${opportunity.intent}`,
         `Signal: ${opportunity.signal || "Not provided"}`,
         `Angle: ${opportunity.angle}`,
