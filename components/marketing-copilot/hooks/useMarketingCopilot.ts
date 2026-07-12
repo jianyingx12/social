@@ -499,7 +499,16 @@ export function useMarketingCopilot({
       format: "Reply",
       status: "Draft",
       title: `Reply to: ${opportunity.title}`,
-      body: opportunity.suggestedReply,
+      body: [
+        opportunity.suggestedReply,
+        "",
+        `Source: ${opportunity.source}`,
+        opportunity.recommendedAction ? `Recommended action: ${opportunity.recommendedAction}` : "",
+        opportunity.replyStrategy ? `Reply posture: ${opportunity.replyStrategy}` : "",
+        opportunity.followUp ? `Follow-up: ${opportunity.followUp}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
       time: "Ready for review",
     };
 

@@ -163,11 +163,16 @@ function hasEnoughResearchContext(product: ProductWorkspace) {
 }
 
 function buildResearchQueries(product: ProductWorkspace) {
+  const targetQueries = product.researchTargets.flatMap((target) => [
+    target.query,
+    target.signal,
+  ]);
   const rawQueries = [
     product.problem,
     product.oneLine,
     product.keywords,
     product.audience,
+    ...targetQueries,
     `${product.problem || product.oneLine} alternative`,
     `${product.problem || product.oneLine} tool`,
   ];
@@ -381,10 +386,14 @@ function buildInstructions() {
     "You are OrganicReach, an organic marketing research agent.",
     "Analyze public discussion and issue search results against the product brief.",
     "Only create opportunities from sources that show plausible demand, pain, comparison intent, confusion, objections, or discussion the founder can join helpfully.",
+    "Treat an opportunity as actionable only when a founder can take a specific next step: reply, answer a question, share a useful resource, join a discussion, learn from objections, or draft a low-risk follow-up.",
     "Do not invent source facts, metrics, comments, or claims.",
     "The suggested reply must be useful and non-spammy. It should answer or contribute first, and mention the product only if genuinely relevant.",
+    "The recommended action must be concrete enough that a user knows what to do in the next 5 minutes.",
+    "The reply strategy should explain how to participate without sounding promotional.",
     "Prefer specific customer language and practical angles over generic marketing copy.",
-    "Return only valid JSON in this exact shape: {\"opportunities\":[{\"platform\":\"Hacker News|Stack Overflow|GitHub\",\"source\":\"string\",\"title\":\"string\",\"intent\":\"string\",\"score\":0,\"risk\":\"Low|Medium|High\",\"angle\":\"string\",\"suggestedReply\":\"string\"}]}",
+    "Score should reflect relevance, urgency, and how safe/helpful it is to engage.",
+    "Return only valid JSON in this exact shape: {\"opportunities\":[{\"platform\":\"Hacker News|Stack Overflow|GitHub\",\"source\":\"string\",\"title\":\"string\",\"intent\":\"string\",\"signal\":\"string\",\"score\":0,\"risk\":\"Low|Medium|High\",\"angle\":\"string\",\"whyItFits\":\"string\",\"recommendedAction\":\"string\",\"replyStrategy\":\"string\",\"followUp\":\"string\",\"suggestedReply\":\"string\"}]}",
     "Return up to 5 opportunities.",
   ].join("\n");
 }
@@ -419,6 +428,18 @@ function buildContext(product: ProductWorkspace, sources: ResearchSource[]) {
         ].join("\n"),
     )
     .join("\n\n");
+  const targetSummary = product.researchTargets
+    .map(
+      (target) =>
+        [
+          `- ${target.channel}: ${target.query}`,
+          `  Signal to look for: ${target.signal}`,
+          target.notes ? `  Notes: ${target.notes}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+    )
+    .join("\n");
 
   return [
     `Active product: ${product.name}`,
@@ -432,6 +453,7 @@ function buildContext(product: ProductWorkspace, sources: ResearchSource[]) {
     `Voice: ${product.voice || "Not provided"}`,
     `Keywords/customer language: ${product.keywords || "Not provided"}`,
     `Avoid/rules: ${product.avoid || "Not provided"}`,
+    `User-provided research hints:\n${targetSummary || "- None provided"}`,
     `Sources:\n${sourceSummary}`,
   ].join("\n\n");
 }
@@ -503,6 +525,11 @@ function sanitizeOpportunity(value: unknown): Omit<Opportunity, "id"> | null {
   const sourceUrl = sanitizeText(source.source, 500);
   const intent = sanitizeText(source.intent, 500);
   const angle = sanitizeText(source.angle, 500);
+  const signal = sanitizeText(source.signal, 500);
+  const whyItFits = sanitizeText(source.whyItFits, 700);
+  const recommendedAction = sanitizeText(source.recommendedAction, 700);
+  const replyStrategy = sanitizeText(source.replyStrategy, 700);
+  const followUp = sanitizeText(source.followUp, 700);
   const suggestedReply = sanitizeText(source.suggestedReply, 1800);
   const score = sanitizeScore(source.score);
 
@@ -518,6 +545,11 @@ function sanitizeOpportunity(value: unknown): Omit<Opportunity, "id"> | null {
     score,
     risk,
     angle,
+    signal,
+    whyItFits,
+    recommendedAction,
+    replyStrategy,
+    followUp,
     suggestedReply,
   };
 }

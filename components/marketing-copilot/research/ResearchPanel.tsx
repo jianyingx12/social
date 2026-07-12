@@ -379,7 +379,7 @@ function OpportunityList({
         ) : opportunities.length === 0 ? (
           <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
             No opportunities yet. Run live research to have the agent look for public
-            demand signals from the product brief.
+            demand signals, action paths, and low-risk reply angles from the product brief.
           </p>
         ) : (
           opportunities.map((opportunity) => (
@@ -397,9 +397,44 @@ function OpportunityList({
               </div>
               <h4 className="mt-3 text-sm font-semibold text-slate-950">{opportunity.title}</h4>
               <p className="mt-2 text-sm leading-6 text-slate-700">{opportunity.intent}</p>
+              {opportunity.signal && (
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                  <span className="font-semibold text-slate-950">Signal:</span>{" "}
+                  {opportunity.signal}
+                </p>
+              )}
               <p className="mt-2 text-sm leading-6 text-slate-700">
                 <span className="font-semibold text-slate-950">Angle:</span> {opportunity.angle}
               </p>
+              <div className="mt-3 grid gap-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+                <h5 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Action plan
+                </h5>
+                {opportunity.recommendedAction && (
+                  <p className="text-sm leading-6 text-slate-700">
+                    <span className="font-semibold text-slate-950">Next step:</span>{" "}
+                    {opportunity.recommendedAction}
+                  </p>
+                )}
+                {opportunity.replyStrategy && (
+                  <p className="text-sm leading-6 text-slate-700">
+                    <span className="font-semibold text-slate-950">Reply posture:</span>{" "}
+                    {opportunity.replyStrategy}
+                  </p>
+                )}
+                {opportunity.whyItFits && (
+                  <p className="text-sm leading-6 text-slate-700">
+                    <span className="font-semibold text-slate-950">Why it fits:</span>{" "}
+                    {opportunity.whyItFits}
+                  </p>
+                )}
+                {opportunity.followUp && (
+                  <p className="text-sm leading-6 text-slate-700">
+                    <span className="font-semibold text-slate-950">Follow-up:</span>{" "}
+                    {opportunity.followUp}
+                  </p>
+                )}
+              </div>
               <a
                 href={opportunity.source}
                 target="_blank"

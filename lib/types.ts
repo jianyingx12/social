@@ -194,5 +194,10 @@ export type Opportunity = {
   score: number;
   risk: "Low" | "Medium" | "High";
   angle: string;
+  signal?: string;
+  whyItFits?: string;
+  recommendedAction?: string;
+  replyStrategy?: string;
+  followUp?: string;
   suggestedReply: string;
 };
