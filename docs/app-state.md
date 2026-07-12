@@ -5,7 +5,7 @@ OrganicReach is an AI-assisted organic advertising workspace for founders. The a
 The product is not meant to be a generic chatbot, a social scheduler, or an auto-posting bot. The core idea is:
 
 ```txt
-Product context -> Research -> Opportunities -> Drafts -> Review
+Product context -> Research -> Opportunities -> Ideas/Drafts -> Review + tracking
 ```
 
 The strongest version of the app starts with conversation, but it should not stay as a blank chat box. The chat should guide the user through a structured intake, build a product profile, and hand that context to the research and drafting layers.
@@ -19,8 +19,8 @@ The app is moving toward a phase-based workflow:
 3. The user can manually edit the brief at any time.
 4. The app builds a research plan across relevant channels.
 5. Research produces demand signals and opportunities.
-6. The AI drafts helpful replies or content ideas.
-7. The user reviews and approves before anything public happens.
+6. The AI drafts helpful replies or research-backed content ideas.
+7. The user reviews, approves, posts manually, and tracks outcomes.
 
 The important product promise is:
 
@@ -37,7 +37,7 @@ The app currently has these main areas:
 - Product brief
 - Source material
 - Research
-- Review queue
+- Review + tracking queue
 - Ideas
 - Connections
 
@@ -164,9 +164,9 @@ Each research target captures:
 - demand signal to look for
 - notes about safety, usefulness, or risk
 
-The current implementation can manually add research targets and seed a starter research plan from the product profile. It does not yet fetch live data from these sources.
+The current implementation can manually add research targets and seed a starter research plan from the product profile. These hints are also used as search inputs during automatic research so the user can steer future discovery.
 
-The first automatic research sources are Hacker News, Stack Overflow, and GitHub issues. The Research view can run a live research pass from the current product brief. The backend searches public results from those sources, sends the normalized source set to OpenAI, and stores the resulting opportunity cards in the product workspace.
+The first automatic research sources are Hacker News, Stack Overflow, and GitHub issues. The Research view can run a live research pass from the current product brief and source hints. The backend searches public results from those sources, sends the normalized source set to OpenAI, and stores the resulting opportunity cards in the product workspace.
 
 The purpose of research is to find:
 
@@ -190,12 +190,19 @@ An opportunity represents a conversation or demand signal worth acting on. It in
 - source
 - title
 - intent
+- demand signal
 - fit score
 - risk level
 - suggested angle
+- why the source fits
+- recommended next action
+- reply posture
+- suggested follow-up
 - suggested reply
 
-The old Opportunities view has been reframed as Research because opportunities should come from research, not appear as an isolated tab. Existing opportunity cards still support drafting replies into the review queue.
+The Research view shows opportunities as a ranked feed. Each research pass returns a small batch of opportunities, and the app merges new results by source URL, dedupes existing sources, and sorts by fit score so the highest-fit opportunities stay near the top. The user can run another pass from the bottom of the opportunity list to find more without turning the page into an unbounded result dump.
+
+The old Opportunities view has been reframed as Research because opportunities should come from research, not appear as an isolated tab. Opportunity cards support drafting replies into the review queue, including the source URL and action guidance so review does not lose context.
 
 ## Drafts And Review
 
@@ -229,11 +236,13 @@ The MVP supports manual approval, scheduling metadata, and post-result tracking.
 
 ## Ideas
 
-Ideas is a later-stage workflow. In the MVP, it creates content ideas with editable draft copy and attachment guidance. OpenAI can say what kind of image, video, link, or media would fit the draft, while the user chooses and attaches the actual asset.
+Ideas turns product context and research signals into reusable organic content. In the MVP, it creates content ideas with editable draft copy and attachment guidance. OpenAI can say what kind of image, video, link, or media would fit the draft, while the user chooses and attaches the actual asset.
 
 Content idea generation is gated until the product brief has enough minimum context: one-line description, target audience, problem or desire, and main outcome promised. Without those fields, the app should ask the user to complete the brief instead of generating generic ideas.
 
-This is useful, but it is secondary to the main discovery-first workflow. The app should first become good at understanding the product and finding demand.
+Ideas can be generated from either the product brief or from research opportunities. Research-backed ideas include source opportunity title, source URL, and the demand signal they came from. Sending one to Review carries that research context into the draft.
+
+This keeps the loop discovery-first: research does not only produce places to reply, it also becomes raw material for TikTok ideas, LinkedIn posts, X / Twitter threads, Reddit or Hacker News post angles, FAQ copy, and founder talking points.
 
 ## Connections
 
@@ -245,7 +254,7 @@ The app has early connection infrastructure for:
 
 Reddit is important for the first research and opportunity discovery direction. TikTok is useful later for login, repurposing, analytics, and comment workflows.
 
-Signed-in users can connect Reddit and TikTok accounts. OAuth callbacks store encrypted access and refresh tokens in Neon Postgres, while connection status routes return only safe account metadata to the browser. TikTok access tokens refresh server-side when needed.
+Signed-in users can connect Reddit and TikTok accounts. OAuth start routes require an app user, store a verified OAuth state cookie, and redirect through the provider permission screen. OAuth callbacks store encrypted access and refresh tokens in Neon Postgres, then return users to Connections. Connection status routes return only safe account metadata to the browser. TikTok access tokens refresh server-side when needed.
 
 Production connection work still needs:
 
@@ -292,10 +301,14 @@ The frontend merges returned brief updates only into empty fields, so manual use
 - Research panel
 - Seeded research target generation
 - Automatic live research across Hacker News, Stack Overflow, and GitHub issues
+- Ranked actionable opportunity cards with action plans
+- Expandable research feed via follow-up research runs
 - Draft review queue
 - Manual approval and scheduling flow for drafts
-- Ideas prototype
+- Posted/result tracking for drafts
+- Brief-based and research-backed content ideas
 - Reddit and TikTok OAuth scaffolding
+- TikTok OAuth connection flow
 - Neon-backed product workspace persistence
 - Encrypted Reddit and TikTok OAuth token storage
 - TikTok refresh token handling
@@ -305,10 +318,8 @@ The frontend merges returned brief updates only into empty fields, so manual use
 - Normalized relational tables for the full product workflow
 - Reddit refresh token rotation and expiry recovery
 - Additional live research sources beyond Hacker News, Stack Overflow, and GitHub
-- Real opportunity discovery from external sources
-- AI summarization of fetched research
+- True paginated source search for deeper "find more" research
 - Posting to external platforms
-- Production-grade auth and user accounts
 - Billing/usage limits
 - Automated tests for the main workflow
 
@@ -317,17 +328,17 @@ The frontend merges returned brief updates only into empty fields, so manual use
 The next best product milestone is not more tabs. It is making the first loop work:
 
 ```txt
-Chat intake -> brief populated -> research plan -> found signals -> draft reply -> review
+Chat intake -> brief populated -> research plan -> found signals -> reply/content draft -> review -> outcome tracking
 ```
 
 A practical next implementation path:
 
 1. Make phase-based intake feel polished and cheap to test.
 2. Add a no-AI preview of what brief fields are filled.
-3. Connect one low-cost research source or manual import path.
-4. Turn research inputs into real opportunity objects.
-5. Draft one helpful reply from one opportunity.
-6. Keep approval explicit.
+3. Add more source-specific research fetchers.
+4. Make "find more" search deeper instead of mostly rerunning the same source queries.
+5. Improve draft generation from opportunity action plans.
+6. Keep approval and outcome tracking explicit.
 
 ## Product Principle
 

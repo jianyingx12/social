@@ -112,6 +112,7 @@ The connection flow works like this:
 ```txt
 User clicks Connect
 -> app verifies the user is signed in
+-> app stores a verified OAuth state cookie for the signed-in user
 -> app redirects to the platform OAuth screen
 -> platform redirects back with a code
 -> server verifies state
@@ -122,7 +123,7 @@ User clicks Connect
 -> browser sees only connection status
 ```
 
-OAuth tokens are only handled in server code. They should not be stored in client state, returned from API routes, or written to browser-accessible storage.
+OAuth tokens are only handled in server code. They should not be stored in client state, returned from API routes, or written to browser-accessible storage. The OAuth state cookie is HTTP-only and exists to bind the provider callback to the app user who started the connection flow.
 
 TikTok access tokens are refreshed server-side through `lib/auth/tiktok-token.ts` when they are expired or close to expiring. Refreshed tokens are encrypted and saved back into `connected_accounts`.
 
