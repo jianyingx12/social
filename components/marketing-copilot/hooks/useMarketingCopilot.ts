@@ -114,10 +114,6 @@ export function useMarketingCopilot({
     loadConnectionStatuses()
       .then(({ accounts: nextAccounts }) => {
         setAccounts((current) => mergeConnectedAccounts(current, nextAccounts));
-
-        if (nextAccounts.TikTok?.status === "Connected") {
-          setConnectionNotice(getTikTokConnectionNotice({ status: "connected", reason: null }));
-        }
       })
       .catch(() => undefined);
   }, [initialTikTokResult]);
