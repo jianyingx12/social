@@ -37,7 +37,7 @@ type TikTokUserInfoResponse = {
 export class TikTokOAuthError extends Error {
   constructor(
     message: string,
-    readonly phase: "token-exchange" | "token-refresh" | "user-info",
+    readonly phase: "token-exchange" | "token-refresh" | "user-info" | "save-connection",
     readonly code?: string,
   ) {
     super(message);

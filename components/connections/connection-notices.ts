@@ -62,6 +62,14 @@ export function getTikTokConnectionNotice(result: {
     };
   }
 
+  if (result.reason === "save-connection") {
+    return {
+      tone: "error",
+      message:
+        "TikTok connected, but OrganicReach could not save the account. Check DATABASE_URL and OAUTH_TOKEN_ENCRYPTION_KEY in Vercel.",
+    };
+  }
+
   return {
     tone: "error",
     message: "TikTok login finished, but the app could not save the connection.",

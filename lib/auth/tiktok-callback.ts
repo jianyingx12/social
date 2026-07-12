@@ -47,21 +47,28 @@ export async function handleTikTokCallback(request: NextRequest) {
       ? Date.now() + token.refresh_expires_in * 1000
       : null;
 
-    await saveConnectedAccount({
-      userId,
-      platform: "TikTok",
-      providerAccountId: account.open_id!,
-      displayName: account.display_name ?? "TikTok account",
-      scopes: splitScopes(token.scope),
-      accessToken: token.access_token!,
-      refreshToken: token.refresh_token ?? null,
-      tokenType: token.token_type ?? null,
-      expiresAt,
-      refreshExpiresAt,
-      metadata: {
-        avatarUrl: account.avatar_url ?? null,
-      },
-    });
+    try {
+      await saveConnectedAccount({
+        userId,
+        platform: "TikTok",
+        providerAccountId: account.open_id!,
+        displayName: account.display_name ?? "TikTok account",
+        scopes: splitScopes(token.scope),
+        accessToken: token.access_token!,
+        refreshToken: token.refresh_token ?? null,
+        tokenType: token.token_type ?? null,
+        expiresAt,
+        refreshExpiresAt,
+        metadata: {
+          avatarUrl: account.avatar_url ?? null,
+        },
+      });
+    } catch (error) {
+      throw new TikTokOAuthError(
+        error instanceof Error ? error.message : "Unable to save TikTok connection",
+        "save-connection",
+      );
+    }
 
     redirectUrl.searchParams.set("tiktok", "connected");
     const response = NextResponse.redirect(redirectUrl);

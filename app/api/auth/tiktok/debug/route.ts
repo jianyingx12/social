@@ -26,6 +26,12 @@ export async function GET() {
       present: Boolean(config.clientSecret),
       length: config.clientSecret?.length ?? 0,
     },
+    storage: {
+      databaseUrlPresent: Boolean(process.env.DATABASE_URL),
+      oauthTokenEncryptionKeyPresent: Boolean(process.env.OAUTH_TOKEN_ENCRYPTION_KEY),
+      neonAuthCookieSecretPresent: Boolean(process.env.NEON_AUTH_COOKIE_SECRET),
+      nodeEnv: process.env.NODE_ENV,
+    },
     redirectUri: redirectUri
       ? {
           scheme: redirectUri.protocol.replace(":", ""),
