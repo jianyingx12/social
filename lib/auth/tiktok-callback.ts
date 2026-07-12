@@ -12,7 +12,7 @@ import { saveConnectedAccount } from "@/lib/db/connected-accounts";
 
 export async function handleTikTokCallback(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  const redirectUrl = new URL("/", requestUrl.origin);
+  const redirectUrl = new URL("/connections", requestUrl.origin);
   const error = requestUrl.searchParams.get("error");
   const code = requestUrl.searchParams.get("code");
   const state = requestUrl.searchParams.get("state");
