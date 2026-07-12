@@ -45,14 +45,15 @@ Product workspaces keep separate state for each product, including the brief, so
 
 Signed-in users now load and save product workspaces through Neon Postgres. The MVP persistence model stores each workspace as JSON per user, which keeps the app flexible while the product shape is still moving.
 
-## Phase-Based Chat
+## Guided Chat
 
-The chat is being shaped around an AI Cofounder-style phase pattern, not its visual design.
+The chat is being shaped around an AI Cofounder-style guidance pattern, not its visual design.
+The phase model is internal guidance for the AI, not a user-controlled workflow.
 
 The intended flow is:
 
 ```txt
-Phase -> explanation -> focused question -> user answer -> brief update -> next phase
+Current gap -> focused question -> user answer -> brief update or follow-up -> next useful question
 ```
 
 The current intake phases are:
@@ -66,6 +67,11 @@ The current intake phases are:
 7. Ready
 
 These phases live in `components/marketing-copilot/chat/intake-phases.ts`.
+
+Users should not have to manage these phases directly. The Chat surface shows product profile
+strength and the next useful question, while the Product Brief remains the full manual editing
+surface. The AI should push back when an answer is too vague or not actionable instead of filling
+brief fields just to advance.
 
 The prompts are tuned for organic advertising, not just generic product discovery. They ask for:
 

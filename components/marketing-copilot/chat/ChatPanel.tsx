@@ -10,7 +10,8 @@ import type {
   ProductWorkspace,
 } from "@/lib/types";
 import { AiSpinner } from "../shared/AiLoadingState";
-import { getCurrentIntakePhase, intakePhases, isPhaseComplete } from "./intake-phases";
+import { getCurrentIntakePhase } from "./intake-phases";
+import { getProfileGuidance } from "./profile-guidance";
 
 type ChatPanelProps = {
   accounts: Account[];
@@ -26,15 +27,6 @@ type ChatPanelProps = {
   onOpenBrief: () => void;
   onProductChange: (updates: ProductBriefUpdates) => void;
 };
-
-const starterMessages: ChatMessage[] = [
-  {
-    id: 1,
-    role: "assistant",
-    content:
-      "We'll build the product profile one phase at a time. Start with the current question, and I'll keep the brief updated as we go.",
-  },
-];
 
 export function ChatPanel({
   accounts,
@@ -52,9 +44,9 @@ export function ChatPanel({
   const [error, setError] = useState<string | null>(null);
   const lastBriefAssistRequestId = useRef<number | null>(null);
   const nextMessageId = useRef(2);
-  const displayedMessages = messages.length > 0 ? messages : starterMessages;
   const currentPhase = getCurrentIntakePhase(product);
-  const currentPhaseIndex = intakePhases.findIndex((phase) => phase.id === currentPhase.id);
+  const profileGuidance = getProfileGuidance(product);
+  const displayedMessages = messages.length > 0 ? messages : getStarterMessages(currentPhase);
 
   useEffect(() => {
     if (!briefAssistRequest || briefAssistRequest.id === lastBriefAssistRequestId.current) {
@@ -138,42 +130,21 @@ export function ChatPanel({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">
-                Phase {currentPhaseIndex + 1}/{intakePhases.length}
+                Product profile: {profileGuidance.label}
               </p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                {currentPhase.title}
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-slate-600">{currentPhase.question}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {intakePhases.slice(0, -1).map((phase, index) => {
-                  const isCurrent = phase.id === currentPhase.id;
-                  const isComplete = isPhaseComplete(product, phase);
-
-                  return (
-                    <span
-                      key={phase.id}
-                      className={`inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs font-semibold ${
-                        isCurrent
-                          ? "bg-slate-950 text-white"
-                          : isComplete
-                            ? "bg-teal-100 text-teal-800"
-                            : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          isCurrent
-                            ? "bg-teal-300"
-                            : isComplete
-                              ? "bg-teal-600"
-                              : "bg-slate-300"
-                        }`}
-                      />
-                      {index + 1}. {phase.label}
-                    </span>
-                  );
-                })}
+              <div className="mt-4 grid gap-2">
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-teal-600 transition-all"
+                    style={{ width: `${profileGuidance.score}%` }}
+                  />
+                </div>
+                <p className="text-xs font-medium text-slate-500">
+                  {profileGuidance.completedCount}/{profileGuidance.totalCount} signals captured
+                  {profileGuidance.missingLabels.length > 0
+                    ? ` - Still learning: ${profileGuidance.missingLabels.slice(0, 3).join(", ")}`
+                    : " - Enough context to start helping with organic marketing"}
+                </p>
               </div>
             </div>
             <button
@@ -283,4 +254,14 @@ export function ChatPanel({
       onProductChange(emptyFieldUpdates);
     }
   }
+}
+
+function getStarterMessages(currentPhase: ReturnType<typeof getCurrentIntakePhase>): ChatMessage[] {
+  return [
+    {
+      id: 1,
+      role: "assistant",
+      content: currentPhase.question,
+    },
+  ];
 }

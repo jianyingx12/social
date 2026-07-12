@@ -90,15 +90,15 @@ export const intakePhases: IntakePhase[] = [
   },
   {
     id: "ready",
-    label: "Ready",
-    title: "Ready to find organic angles",
+    label: "Marketing",
+    title: "What should we market next?",
     question:
-      "The profile has enough context to look for helpful reply angles, listening channels, and content ideas.",
+      "I have enough context to help with organic marketing. Ask for reply angles, content ideas, listening channels, positioning feedback, or next actions.",
     fields: [],
     examples: [
       "Find helpful reply angles",
-      "Suggest listening channels",
-      "Review the organic positioning",
+      "Suggest organic marketing actions",
+      "Draft content ideas for this product",
     ],
   },
 ];
@@ -112,9 +112,21 @@ export function isPhaseComplete(product: ProductWorkspace, phase: IntakePhase) {
     return false;
   }
 
-  return phase.fields.some((field) => {
-    const value = product[field];
+  if (phase.id === "product") {
+    return hasBriefValue(product.oneLine);
+  }
 
-    return typeof value === "string" && value.trim().length > 0 && value !== "Other";
-  });
+  if (phase.id === "customer") {
+    return hasBriefValue(product.audience) && hasBriefValue(product.problem);
+  }
+
+  if (phase.id === "outcome") {
+    return hasBriefValue(product.outcome);
+  }
+
+  return phase.fields.some((field) => hasBriefValue(product[field]));
+}
+
+function hasBriefValue(value: string) {
+  return value.trim().length > 0 && value !== "Other";
 }
