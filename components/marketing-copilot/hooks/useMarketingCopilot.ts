@@ -191,6 +191,10 @@ export function useMarketingCopilot({
       .catch(() => undefined);
   }
 
+  function dismissConnectionNotice() {
+    setConnectionNotice(null);
+  }
+
   function approveDraft(id: number) {
     const approvedAt = new Date().toISOString();
 
@@ -541,6 +545,7 @@ export function useMarketingCopilot({
     deleteProduct,
     deselectProduct,
     disconnectConnectedAccount,
+    dismissConnectionNotice,
     draftOpportunity,
     generatePlan,
     generateContentPlan,

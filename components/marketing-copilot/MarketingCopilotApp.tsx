@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { ChatPanel } from "./chat/ChatPanel";
 import { AccountPanel } from "../connections/AccountPanel";
-import { ConnectionNoticeBanner } from "../connections/ConnectionNoticeBanner";
+import { ConnectionNoticeToast } from "../connections/ConnectionNoticeToast";
 import { useMarketingCopilot } from "./hooks/useMarketingCopilot";
 import { AppHeader } from "../layout/AppHeader";
 import { Sidebar } from "../layout/Sidebar";
@@ -56,6 +56,7 @@ export function MarketingCopilotApp({
     approveDraft,
     connectAccount,
     disconnectConnectedAccount,
+    dismissConnectionNotice,
     draftOpportunity,
     generatePlan,
     generateContentPlan,
@@ -107,7 +108,6 @@ export function MarketingCopilotApp({
           />
 
           <div className="min-w-0">
-            {connectionNotice && <ConnectionNoticeBanner notice={connectionNotice} />}
             {activeTab === "chat" && activeProduct && (
               <ChatPanel
                 accounts={accounts}
@@ -201,6 +201,12 @@ export function MarketingCopilotApp({
           </div>
         </section>
       </div>
+      {connectionNotice && (
+        <ConnectionNoticeToast
+          notice={connectionNotice}
+          onDismiss={dismissConnectionNotice}
+        />
+      )}
     </main>
   );
 }
