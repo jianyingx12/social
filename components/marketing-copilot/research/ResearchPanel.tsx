@@ -63,8 +63,8 @@ export function ResearchPanel({
   }
 
   return (
-    <section className="grid min-h-0 items-stretch gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-      <div ref={setLeftColumnElement} className="grid gap-4">
+    <section className="grid min-h-0 items-start gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+      <div ref={setLeftColumnElement} className="grid gap-4 self-start">
         <ResearchAgentPanel
           isGeneratingResearch={isGeneratingResearch}
           product={product}

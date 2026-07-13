@@ -54,7 +54,7 @@ export function OpportunityList({
           </label>
         )}
       </div>
-      <div className="mt-4 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1">
+      <div className="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
         {isGeneratingResearch && opportunities.length === 0 ? (
           <OpportunityLoadingCards />
         ) : visibleOpportunities.length === 0 ? (
