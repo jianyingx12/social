@@ -6,6 +6,7 @@ import type { RejectionReason } from "../hooks/research-workflow";
 import { OpportunityList } from "./OpportunityList";
 import { ResearchAgentPanel } from "./ResearchAgentPanel";
 import { SourceHintsPanel } from "./SourceHintsPanel";
+import { useElementHeight } from "./useElementHeight";
 
 type ResearchPanelProps = {
   isGeneratingResearch: boolean;
@@ -38,6 +39,8 @@ export function ResearchPanel({
   onReconsider,
   onRunResearch,
 }: ResearchPanelProps) {
+  const [leftColumnElement, setLeftColumnElement] = useState<HTMLDivElement | null>(null);
+  const leftColumnHeight = useElementHeight(leftColumnElement);
   const [channel, setChannel] = useState<ResearchChannel>("Search");
   const [query, setQuery] = useState("");
   const [signal, setSignal] = useState("");
@@ -61,7 +64,7 @@ export function ResearchPanel({
 
   return (
     <section className="grid min-h-0 items-stretch gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-      <div className="grid gap-4">
+      <div ref={setLeftColumnElement} className="grid gap-4">
         <ResearchAgentPanel
           isGeneratingResearch={isGeneratingResearch}
           product={product}
@@ -88,6 +91,7 @@ export function ResearchPanel({
       <OpportunityList
         isGeneratingResearch={isGeneratingResearch}
         opportunities={opportunities}
+        panelHeight={leftColumnHeight}
         onFindMore={onRunResearch}
         onDraft={onDraft}
         onReject={onReject}

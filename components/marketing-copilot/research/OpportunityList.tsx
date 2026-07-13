@@ -6,6 +6,7 @@ import { AiSpinner } from "../shared/AiLoadingState";
 type OpportunityListProps = {
   isGeneratingResearch: boolean;
   opportunities: Opportunity[];
+  panelHeight: number | null;
   onFindMore: () => void;
   onDraft: (id: number) => void;
   onReject: (id: number, reason: RejectionReason) => void;
@@ -15,6 +16,7 @@ type OpportunityListProps = {
 export function OpportunityList({
   isGeneratingResearch,
   opportunities,
+  panelHeight,
   onFindMore,
   onDraft,
   onReject,
@@ -29,7 +31,10 @@ export function OpportunityList({
   ).length;
 
   return (
-    <div className="flex h-full min-h-[420px] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div
+      className="flex min-h-[420px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+      style={panelHeight ? { height: panelHeight } : undefined}
+    >
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-slate-950">Organic openings</h3>
