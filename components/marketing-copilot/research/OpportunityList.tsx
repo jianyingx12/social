@@ -29,7 +29,7 @@ export function OpportunityList({
   ).length;
 
   return (
-    <div className="flex min-h-[520px] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5 xl:min-h-[calc(100vh-11rem)]">
+    <div className="flex h-[640px] min-h-0 flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5 xl:h-[calc(100vh-11rem)]">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-slate-950">Organic openings</h3>
@@ -49,7 +49,7 @@ export function OpportunityList({
           </label>
         )}
       </div>
-      <div className="mt-4 grid flex-1 content-start gap-3 overflow-y-auto pr-1">
+      <div className="mt-4 grid min-h-0 flex-1 content-start gap-3 overflow-y-auto pr-1">
         {isGeneratingResearch && opportunities.length === 0 ? (
           <OpportunityLoadingCards />
         ) : visibleOpportunities.length === 0 ? (
